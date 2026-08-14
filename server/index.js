@@ -15,6 +15,7 @@ const {
   defaultFeatureAccess, normalizeFeatureAccess, canUseFeature,
 } = require('./features');
 const { defaultSkills, nextSkillId, sanitizeSkill } = require('./skills');
+const snapshots = require('./snapshots');
 const { extractBlocos } = require('./entrevistador/blocos');
 
 const app = express();
@@ -58,7 +59,58 @@ const SEED_DATA_DIR = path.join(__dirname, 'data');
 // PRECISA existir num deploy limpo (Railway) mora aqui e é copiado no primeiro boot.
 const SEED_CONTENT_DIR = path.join(__dirname, 'seed');
 const DATA_DIR = process.env.DATA_DIR ? path.resolve(process.env.DATA_DIR) : SEED_DATA_DIR;
+
+// ---------------------------------------------------------------------
+// ⚠ O INCIDENTE QUE ESTE BLOCO EXISTE PARA IMPEDIR
+//
+// Um cliente construiu pacientes, exercícios e competências durante dias. No deploy
+// seguinte, tudo voltou ao seed: o trabalho dele foi perdido.
+//
+// A causa: `DATA_DIR=/data` estava definido, mas o VOLUME não estava montado ali. O Node
+// então CRIAVA a pasta dentro do container (o `mkdirSync` abaixo), escrevia nela, e tudo
+// funcionava — até o redeploy destruir o container com os dados dentro.
+//
+// O healthcheck não pegava porque só perguntava "é gravável?". Um diretório efêmero também
+// é gravável. Uma pergunta que qualquer diretório responde "sim" não é uma verificação.
+//
+// Agora o boot exige PROVA DE PERSISTÊNCIA: um marcador gravado num boot anterior. Se o
+// diretório estiver vazio E for a primeira vez, seguimos (é um deploy legítimo novo, e o
+// marcador nasce agora). Se o marcador SUMIU entre boots, o disco é efêmero — e aí é
+// melhor falhar ruidosamente do que aceitar dados que vão evaporar.
+// ---------------------------------------------------------------------
 if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
+
+const PERSIST_MARKER = path.join(DATA_DIR, '.persist-check.json');
+/** Estado da persistência, exposto no /api/health e gritado no log de boot. */
+const persistence = { verified: false, firstBoot: false, reason: '' };
+try {
+  if (fs.existsSync(PERSIST_MARKER)) {
+    // O marcador sobreviveu a um boot anterior: o disco é REAL.
+    const prev = JSON.parse(fs.readFileSync(PERSIST_MARKER, 'utf-8'));
+    persistence.verified = true;
+    persistence.reason = `marcador de ${prev.createdAt} sobreviveu a ${(prev.boots || 0) + 1} boots`;
+    fs.writeFileSync(PERSIST_MARKER, JSON.stringify({ ...prev, boots: (prev.boots || 0) + 1, lastBoot: new Date().toISOString() }, null, 2));
+  } else {
+    // Sem marcador. Pode ser o primeiro boot legítimo... ou um disco efêmero que já
+    // apagou tudo. A diferença: se HÁ dados de usuário sem marcador, algo está errado.
+    const temDados = fs.existsSync(path.join(DATA_DIR, 'users.json'));
+    persistence.firstBoot = !temDados;
+    persistence.verified = false;
+    persistence.reason = temDados
+      ? 'HÁ DADOS mas o marcador de persistência sumiu — disco provavelmente EFÊMERO'
+      : 'primeiro boot neste diretório (marcador criado agora)';
+    fs.writeFileSync(PERSIST_MARKER, JSON.stringify({ createdAt: new Date().toISOString(), boots: 1, dataDir: DATA_DIR }, null, 2));
+  }
+} catch (e) {
+  persistence.reason = `falha ao verificar persistência: ${e.message}`;
+}
+
+if (!persistence.verified) {
+  const grito = persistence.firstBoot
+    ? `[persistência] Primeiro boot em ${DATA_DIR}. O marcador foi criado; o PRÓXIMO boot confirma se o disco é persistente.`
+    : `[persistência] ⚠⚠ ATENÇÃO: ${persistence.reason}. Se DATA_DIR não apontar para um VOLUME MONTADO, todo dado criado aqui será PERDIDO no próximo deploy.`;
+  console.warn(grito);
+}
 
 // Copia um seed para o DATA_DIR apenas se o destino ainda não existir — assim um
 // redeploy nunca sobrescreve os dados do volume.
@@ -252,6 +304,25 @@ if (!fs.existsSync(path.join(DATA_DIR, 'active-sessions.json'))) writeJSON('acti
 if (!fs.existsSync(path.join(DATA_DIR, 'progress.json'))) writeJSON('progress.json', {});
 if (!fs.existsSync(path.join(DATA_DIR, 'achievements.json'))) writeJSON('achievements.json', {});
 if (!fs.existsSync(path.join(DATA_DIR, 'mmr.json'))) writeJSON('mmr.json', { players: {}, characters: {} });
+// ---------------------------------------------------------------------
+// SNAPSHOT DE BOOT — a rede de segurança do deploy.
+//
+// Roda ANTES de qualquer bootstrap/migração abaixo, de propósito: o que queremos preservar
+// é o estado EXATO de antes deste deploy. Se uma migração tiver um bug, o snapshot já
+// guardou o "antes" e o rollback existe.
+//
+// Um backup que depende de alguém lembrar de exportar não existe no dia em que é preciso.
+// ---------------------------------------------------------------------
+try {
+  const snap = snapshots.createSnapshot(DATA_DIR, 'boot');
+  if (snap && snap.path) {
+    console.log(`[snapshot] ${snap.files.length} arquivo(s), ${(snap.bytes / 1024).toFixed(0)} KB → ${path.basename(snap.path)} (mantendo os ${snapshots.KEEP} mais recentes)`);
+  }
+} catch (e) {
+  // Um erro aqui NÃO pode derrubar o boot: ficar sem backup é ruim, ficar sem sistema é pior.
+  console.error('[snapshot] Falhou ao criar o snapshot de boot:', e.message);
+}
+
 if (!fs.existsSync(path.join(DATA_DIR, 'duels.json'))) writeJSON('duels.json', []);
 if (!fs.existsSync(path.join(DATA_DIR, 'notifications.json'))) writeJSON('notifications.json', {});
 // Anúncios do admin (demanda #9): avisos globais que viram pop-up no primeiro login de
@@ -941,6 +1012,62 @@ app.post('/api/admin/users/:id/reset-password', requireAuth, requireRole('admin'
 });
 
 // Backup completo (admin) — baixa um JSON com todos os dados.
+// =====================================================================
+// SNAPSHOTS — backup automático do volume (ver server/snapshots.js)
+// =====================================================================
+
+// Lista os snapshots disponíveis, do mais novo para o mais antigo.
+app.get('/api/admin/snapshots', requireAuth, requireRole('admin'), (req, res) => {
+  res.json({ keep: snapshots.KEEP, items: snapshots.listSnapshots(DATA_DIR) });
+});
+
+// Cria um snapshot sob demanda ("vou mexer em algo arriscado, salva antes").
+app.post('/api/admin/snapshots', requireAuth, requireRole('admin'), (req, res) => {
+  try {
+    const snap = snapshots.createSnapshot(DATA_DIR, 'manual');
+    if (!snap || snap.empty) return res.status(400).json({ error: 'Nada para salvar: o volume está vazio.' });
+    res.json({ ok: true, name: path.basename(snap.path), files: snap.files, bytes: snap.bytes });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Baixa UM arquivo de dentro de um snapshot — é assim que se recupera, por exemplo, o
+// `skills.json` de antes de um deploy sem restaurar o volume inteiro.
+app.get('/api/admin/snapshots/:name/:file', requireAuth, requireRole('admin'), (req, res) => {
+  const content = snapshots.readFromSnapshot(DATA_DIR, req.params.name, req.params.file);
+  if (content == null) return res.status(404).json({ error: 'Snapshot ou arquivo não encontrado.' });
+  res.setHeader('Content-Type', 'application/json; charset=utf-8');
+  res.send(content);
+});
+
+/**
+ * RESTAURA um arquivo a partir de um snapshot. Destrutivo — por isso:
+ *  - exige `confirm: true` no corpo (não se restaura por engano num clique);
+ *  - só aceita arquivos da allowlist (`snapshots.FILES`), senão daria para escrever
+ *    qualquer caminho dentro do DATA_DIR;
+ *  - tira um snapshot ANTES de sobrescrever, para que a própria restauração seja
+ *    reversível — quem restaura o arquivo errado precisa poder voltar atrás;
+ *  - passa por `withFileLock`, como toda escrita do projeto.
+ */
+app.post('/api/admin/snapshots/:name/restore', requireAuth, requireRole('admin'), async (req, res) => {
+  const { file, confirm } = req.body || {};
+  if (confirm !== true) return res.status(400).json({ error: 'Envie confirm:true — restaurar sobrescreve os dados atuais.' });
+  if (!snapshots.FILES.includes(file)) return res.status(400).json({ error: 'Arquivo não permitido.', allowed: snapshots.FILES });
+
+  const content = snapshots.readFromSnapshot(DATA_DIR, req.params.name, file);
+  if (content == null) return res.status(404).json({ error: 'Snapshot ou arquivo não encontrado.' });
+
+  let parsed;
+  try { parsed = JSON.parse(content); } catch { return res.status(422).json({ error: 'O arquivo do snapshot está corrompido (JSON inválido).' }); }
+
+  snapshots.createSnapshot(DATA_DIR, 'prerestore');
+  await withFileLock(file, () => { writeJSON(file, parsed); });
+
+  console.warn(`[snapshot] RESTAURADO ${file} de ${req.params.name} por ${req.user.username}`);
+  res.json({ ok: true, file, from: req.params.name });
+});
+
 app.get('/api/admin/export', requireAuth, requireRole('admin'), (req, res) => {
   const payload = {
     exportedAt: new Date().toISOString(),
@@ -3273,12 +3400,24 @@ app.get('/api/health', (req, res) => {
     fs.accessSync(DATA_DIR, fs.constants.W_OK);
     dataWritable = true;
   } catch {}
+  // ⚠ `dataWritable` NÃO basta — foi essa a lição do incidente em que um cliente perdeu
+  // dias de trabalho. Um diretório efêmero dentro do container também é gravável, então
+  // esta checagem passava com o volume DESMONTADO e o sistema servia dados condenados.
+  //
+  // `persisted` é a verificação de verdade: um marcador que sobreviveu a um boot anterior.
+  // Não derrubamos o healthcheck por causa dele (no primeiro boot legítimo ele é falso, e
+  // falhar aí impediria qualquer deploy novo de subir) — mas ele fica VISÍVEL aqui e
+  // gritado no log, para um volume desmontado ser detectável em segundos.
   const ok = dataWritable;
   res.status(ok ? 200 : 503).json({
     ok,
     uptime: Math.floor(process.uptime()),
     dataDir: DATA_DIR,
     dataWritable,
+    dataDirFromEnv: !!process.env.DATA_DIR,
+    persisted: persistence.verified,
+    persistenceNote: persistence.reason,
+    snapshots: (() => { try { return snapshots.listSnapshots(DATA_DIR).length; } catch { return null; } })(),
     openai: !!process.env.OPENAI_API_KEY,
     evaluator: evaluatorEnabled(),
   });
@@ -3301,6 +3440,15 @@ if (require.main === module) {
   if (removed > 0) console.log(`[logs] ${removed} log(s) expirado(s) removido(s) no boot.`);
   const duelsRemoved = pruneExpiredDuels();
   if (duelsRemoved > 0) console.log(`[duels] ${duelsRemoved} duelo(s) expirado(s) removido(s) no boot.`);
+  // BOOT_ONLY: roda todo o bootstrap (seed, migrações, snapshot, verificação de
+  // persistência) e SAI, sem abrir porta. É como `tests/persistence.test.js` exercita o
+  // caminho de boot — que só existe uma vez por processo e por isso não dá para testar
+  // com `require()`. Sem isto, cada boot do teste ficava preso até o timeout: 8 testes
+  // levavam 140s.
+  if (process.env.BOOT_ONLY === '1') {
+    console.log('[boot-only] Bootstrap concluído; encerrando sem abrir porta.');
+    process.exit(0);
+  }
   const PORT = process.env.PORT || 3001;
   app.listen(PORT, () => console.log(`Servidor Genus Praxis rodando na porta ${PORT}`));
 }
