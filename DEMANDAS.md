@@ -1132,3 +1132,162 @@ nascem vazios num deploy limpo — ver #9). Um deploy limpo deve começar SEM at
   atualizações pela tela; estático é mais simples se as atualizações forem raras e via deploy.)
 - "Retirar da tela" = despublicar (some para todos, mas o anúncio fica no admin) ou apagar
   de vez? Provavelmente os dois, como na #9.
+
+---
+
+# 📥 BACKLOG NOVO — 2026-08-14
+
+Sessão de grilling com o usuário. As #11 e #12 foram confirmadas **funcionando em
+produção** (deploy já feito). O que segue é o backlog desta sessão.
+
+| # | o que é | pontos | status |
+|---|---|---|---|
+| 13 | Renomear "Genus Práxis" → "Genus Praxis" (tirar o acento) | 1 | ✅ **FEITA** |
+| 14 | Banner da Home vira link para a OMNIA | 1 | ✅ **FEITA** |
+| 15 | 🔴 BUG: competências editadas não aparecem no `<select>` de exercícios | 3 | ✅ **FEITA** |
+| 16 | Terminar a #11: ErrorBoundary + varredura + teste de imports | 3 | ✅ **FEITA** |
+
+---
+
+## 13. Renomear para "Genus Praxis" (sem acento) ✅
+
+**Decisão do usuário:** mantém o "Genus"; muda só `Práxis` → `Praxis`. O nome do produto na
+tela passa a bater com o domínio (`praxis.lucasalbertoni.com`).
+
+**Escopo A (fechado com o usuário): só o que o cliente vê.** Alterados: `client/index.html`
+(title + meta description), `App.jsx` (sidebar, topo, `alt` das logos), `Login.jsx`,
+`Avaliacao.jsx` (o autor "Genus Praxis · Avaliador"), `Duelo.jsx` (o texto do convite
+compartilhado no WhatsApp), `package.json`, `README.md` e o log de boot do servidor.
+
+**Deliberadamente NÃO alterados:** comentários de código e de CSS, `CLAUDE.md` e
+`DIFERENCAS.md` — lá "Genus" é usado em oposição a "All_OS" para explicar a origem do fork,
+e reescrever perderia a história do porte sem ganho para o usuário.
+
+⚠ **O diretório do repositório (`genus_praxis`) e o `DATA_DIR` NÃO mudam.** Renomear
+quebraria os caminhos locais e o volume do Railway. Nome de produto ≠ nome de pasta.
+
+O `<span className="accent">` foi preservado: "Genus" fica branco e "Praxis" laranja, como
+era antes.
+
+---
+
+## 14. Banner da Home → OMNIA ✅
+
+O "CLIQUE AQUI" faz parte da **imagem** do banner (não era um elemento próprio), então o
+banner inteiro virou o link — decisão do usuário.
+
+- Destino: `https://omnia.lucasalbertoni.com/`
+- **Nova aba** (`target="_blank"`) — sair do Praxis no meio de um atendimento faria o aluno
+  perder a tela. Com `rel="noopener noreferrer"`: sem ele, a página de destino ganha acesso
+  programático à nossa aba via `window.opener`.
+- **Visível para todos os papéis** (decisão do usuário — inclusive admin e professor).
+- CSS: o `<div>` virou `<a>`, que é `inline` por padrão — sem `display:block` a moldura e o
+  raio não envolveriam a imagem. Ganhou realce de `:hover` para sinalizar que é clicável.
+
+---
+
+## 15. 🔴 BUG (produção): o `<select>` de competências mostrava a lista antiga ✅
+
+> "Meu administrador trocou as competências, mas quando vai alterar os exercícios da trilha
+> e clica em competência continua aparecendo as antigas."
+
+### Causa raiz — não era falta de link entre as telas
+
+As duas telas já liam da mesma fonte (`skills.json` → `GET /api/skills`). O problema era
+**quando**: `useSkills()` buscava as competências num `useEffect` com dependências `[]` —
+**uma vez, no mount do app**, e o valor ficava congelado em memória pela sessão inteira.
+
+`AdminSkills` (onde ele editou) tem estado **próprio** e atualiza otimisticamente — por isso
+a tabela dele mostrava o resultado certo e parecia ter salvo. E tinha salvo. Mas
+`AdminExercises`, `SkillMap` e os selos dos `Logs` leem do **contexto compartilhado**, que
+ninguém nunca avisava da mudança. Só um F5 corrigia.
+
+**Confirmado como cache, não corrupção:** o usuário deu Ctrl+Shift+R e as competências novas
+apareceram. Os dados no servidor estavam certos o tempo todo.
+
+### A correção (opção B, escolhida pelo usuário)
+1. **`reload()` no provider.** `useSkills` expõe `reload`; o `AdminSkills` o chama de dentro
+   do próprio `load()` — que é o **ponto único** por onde salvar, apagar e reordenar já
+   passavam. Sem espalhar chamada por handler.
+2. **A carga parou de falhar em silêncio.** O `.catch(() => {})` engolia o erro e a trilha
+   inteira exibia as 5 competências **fantasma** do `FALLBACK_SKILLS` hardcoded — que, numa
+   instalação que já editou as competências, é informação errada apresentada como certa.
+   Agora há `console.error` e uma flag `stale`.
+
+**NÃO mexemos no `FALLBACK_SKILLS`** (opção C, descartada): ele existe para a tela não piscar
+com um polígono de zero lados durante o carregamento, e trocá-lo tem efeito visual que não dá
+para verificar sem navegador.
+
+### Verificado ao vivo (servidor real, volume limpo)
+Reproduzida a trilha real do administrador (Empatia / Experiencialidade / Não diretividade /
+Aceitação / Relacionalidade) via API: o `GET /api/skills` serve a lista nova, os `criteria`
+sobrevivem a um PUT parcial, e um **processo novo contra o mesmo volume** devolve tudo intacto.
+
+> 💡 Achado do caminho (**não é bug**): renomear a competência 1 para "Empatia" é recusado com
+> `409 "Já existe uma competência com esse nome"` enquanto a 3 ainda se chamar Empatia. O admin
+> precisa renomear na ordem que evita a colisão. O servidor está certo — dois nomes iguais
+> seriam indistinguíveis no SkillMap e nos logs.
+
+---
+
+## 16. Terminar a demanda #11 ✅ (o que faltava dela)
+
+A #11 tinha sido fechada só com o passo 1 (o `import { Link }`). Os passos 2, 3 e 4 que a
+própria spec pedia estavam pendentes:
+
+**2. Varredura do client — limpa.** Verifiquei todos os `.jsx` atrás de `Link`, `Navigate`,
+`Outlet`, `useNavigate`, `useParams`, `useLocation` e `useSearchParams` usados sem import.
+O `AdminFeatures` era o único caso; não havia irmão escondido.
+
+**3. `<ErrorBoundary>` em volta das rotas.** Hoje um erro de renderização em UMA tela
+derrubava a árvore inteira do React — tela preta, sem sidebar, sem mensagem, sem saída. Agora
+a falha fica contida na tela e o menu continua de pé.
+- `resetKey={location.pathname}`: sem isso o boundary vira **armadilha** — uma vez em erro,
+  continuaria mostrando a tela de falha mesmo depois de navegar para outra rota, porque o
+  estado sobrevive à troca de filhos.
+- O CSS mora no `index.css`, não num arquivo próprio: se o CSS da página quebrada não
+  carregar, a tela de erro ainda precisa aparecer.
+- ⚠ **Limitação do React, não escolha nossa:** só captura erros de **renderização**. Exceção
+  em `onClick`, `setTimeout` ou promise rejeitada NÃO passa pelo boundary.
+
+**4. `tests/client-imports.test.js` (novo, 43 testes).** Trava a classe de bug no **fonte**,
+no espírito do `prompt-files.test.js` — porque nada mais a pega: o `vite build` compila numa
+boa (símbolo global indefinido só estoura em runtime) e a suíte não renderiza React.
+- Remove comentários e strings antes de procurar o uso: um `<Link>` citado num comentário
+  contaria como uso real, e falso positivo é a forma mais rápida de um teste ser desativado.
+- **Validado por MUTAÇÃO:** removi o `import { Link }` do `AdminFeatures` (o bug original de
+  produção) e o teste falhou nomeando arquivo e símbolo. Restaurado depois.
+
+---
+
+## 📌 Persistência no deploy — confirmado com o usuário (2026-08-14)
+
+> "Quando eu subir o novo deploy eu não quero que suba apagando o que ele construiu."
+
+**Não apaga.** Verificado no código e ao vivo, não presumido:
+
+| o que o admin edita **pela tela** | onde mora | sobrevive |
+|---|---|---|
+| Prompt do paciente (`specificInstruction`) | `exercises.json` / `freeplay-characters.json` | ✅ |
+| Gabarito (`evaluationCriteria`) e avaliador customizado | idem | ✅ |
+| Competências + critérios | `skills.json` | ✅ |
+| Contas, logs, MMR, anúncios, configurações | os JSONs do volume | ✅ |
+
+Duas garantias: o seed copia **arquivo por arquivo só se o destino não existir**
+(`if (!fs.existsSync(dst))`, server/index.js:75), e o volume `/data` sobrevive ao redeploy.
+
+**Prova ao vivo:** editei o prompt de um exercício com um marcador, matei o processo e subi
+outro contra o mesmo volume — o marcador estava lá. Note que `exercises.json` **é** um dos
+dois arquivos do `server/seed/`, e mesmo assim não foi sobrescrito.
+
+⚠ **Os prompts do SISTEMA são o caso oposto.** `server/avaliacao/*.md` e
+`server/entrevistador/promptentrevistador.md` vêm do **git**, não do volume. Estão commitados
+(verificado), então o deploy os leva — mas quem editar um deles direto no servidor perde a
+alteração no próximo deploy. Não são editáveis pela interface, então na prática não é risco.
+
+**A regra em uma frase:** o que é editado *pela tela* está no volume e sobrevive; o que é
+editado *por arquivo* vem do git e é substituído a cada deploy.
+
+⚠ A única forma real de perder dados: **desmontar/recriar o volume ou mudar o `DATA_DIR`** no
+Railway. Aí o app escreve em outro lugar e sobe vazio — parece "o deploy apagou tudo", mas foi
+troca de destino. Um export por *Admin → Exportar* antes de subir custa 10 segundos.
