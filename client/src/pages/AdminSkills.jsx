@@ -32,15 +32,29 @@ export default function AdminSkills() {
 
   const load = useCallback(() => {
     setLoading(true);
-    Promise.all([api.getSkills(), api.adminSkillOrphans().catch(() => [])])
+    return Promise.all([api.getSkills(), api.adminSkillOrphans().catch(() => [])])
       .then(([list, orfaos]) => { setSkills(list || []); setOrphans(orfaos || []); })
       .catch((e) => setError(e.message || 'Erro ao carregar as competências.'))
       .finally(() => setLoading(false));
-    // Ponto único: salvar, apagar e reordenar já chamam `load()`, então propagar daqui
-    // cobre as três operações sem espalhar chamadas por cada handler.
-    reloadSkillsContext();
-  }, [reloadSkillsContext]);
+  }, []);
   useEffect(() => { load(); }, [load]);
+
+  /**
+   * Recarrega ESTA tela e avisa o contexto compartilhado.
+   *
+   * ⚠ Separado do `load` de propósito. A primeira versão chamava
+   * `reloadSkillsContext()` de dentro do `load` e listava a função nas deps do
+   * `useCallback` — o que criava um LAÇO: `load` mudava o estado do provider → o provider
+   * devolvia um `reload` novo → `load` era recriado → o `useEffect([load])` disparava →
+   * `load` de novo. Em produção a tela entrava em ciclo e exibia o FALLBACK.
+   *
+   * Só as MUTAÇÕES chamam isto; o carregamento inicial usa `load` puro, porque o provider
+   * já busca as competências sozinho ao montar.
+   */
+  const reloadAll = useCallback(() => {
+    reloadSkillsContext();
+    return load();
+  }, [load, reloadSkillsContext]);
 
   function openEdit(sk) {
     setEditingId(sk.id);
@@ -63,7 +77,7 @@ export default function AdminSkills() {
       if (creating) await api.adminCreateSkill(form);
       else await api.adminUpdateSkill(editingId, form);
       closeForm();
-      load();
+      reloadAll();
       setOk('Competência salva.');
     } catch (err) {
       setError(err.message || 'Erro ao salvar.');
@@ -97,7 +111,7 @@ export default function AdminSkills() {
 
     try {
       await api.adminDeleteSkill(sk.id, { confirm: true });
-      load();
+      reloadAll();
       setOk(afetados > 0 ? `Competência apagada. ${afetados} exercício(s) ficaram sem competência.` : 'Competência apagada.');
     } catch (err) {
       setError(err.message || 'Erro ao apagar.');
@@ -115,7 +129,7 @@ export default function AdminSkills() {
       await api.adminReorderSkills(nova.map((s) => s.id));
     } catch (err) {
       setError(err.message || 'Erro ao reordenar.');
-      load();
+      reloadAll();
     }
   }
 

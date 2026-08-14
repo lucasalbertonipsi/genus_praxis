@@ -7,7 +7,7 @@
 // A geometria do SkillMap deixou de ser um pentágono literal: os vértices são calculados
 // a partir de N (`360 / N`), então 3, 5 ou 8 competências desenham o polígono certo.
 
-import { createContext, useCallback, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import { api } from '../api';
 
 /**
@@ -67,26 +67,36 @@ export function useSkills() {
   // instalação que já editou as competências, isso é informação errada apresentada como certa.
   const [stale, setStale] = useState(false);
 
+  // `alive` vive num ref, não numa variável local do `load`.
+  //
+  // ⚠ ARMADILHA (já nos mordeu): a versão anterior declarava `let cancelled` DENTRO do
+  // `load` e devolvia `() => { cancelled = true }`. Como o efeito era `useEffect(() =>
+  // load(), [load])`, o React tratava esse retorno como a função de limpeza — e a limpeza
+  // do StrictMode cancelava a própria busca que acabara de começar.
+  const alive = useRef(true);
+  useEffect(() => () => { alive.current = false; }, []);
+
   const load = useCallback(() => {
-    let cancelled = false;
     setLoading(true);
-    api.getSkills()
+    return api.getSkills()
       .then((list) => {
-        if (cancelled) return;
+        if (!alive.current) return;
         if (!Array.isArray(list) || list.length === 0) { setStale(true); return; }
         setSkills(list);
         setStale(false);
       })
       .catch((err) => {
-        if (cancelled) return;
+        if (!alive.current) return;
         setStale(true);
         console.error('[skills] Falha ao carregar as competências do servidor. A trilha está exibindo a lista de fallback, que pode não corresponder às competências reais.', err);
       })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
+      .finally(() => { if (alive.current) setLoading(false); });
   }, []);
 
-  useEffect(() => load(), [load]);
+  // `load` tem deps `[]` — é uma referência ESTÁVEL, então este efeito roda uma vez só.
+  // Isso é o que impede o laço: quem chama `reload()` (o AdminSkills) não pode acabar
+  // recriando o próprio efeito que dispara `reload()` de novo.
+  useEffect(() => { load(); }, [load]);
 
   return {
     skills,
