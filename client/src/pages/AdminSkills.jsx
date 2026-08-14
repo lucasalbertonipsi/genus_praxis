@@ -5,6 +5,7 @@
 // no topo e o texto de cada campo existem por isso, e não são decoração.
 import { useEffect, useState, useCallback } from 'react';
 import { api } from '../api';
+import { useSkillsContext } from '../utils/skills';
 import Typewriter from '../components/Typewriter';
 import '../styles/Admin.css';
 
@@ -22,13 +23,23 @@ export default function AdminSkills() {
   const [saving, setSaving] = useState(false);
   const [creating, setCreating] = useState(false);
 
+  // Esta tela tem estado PRÓPRIO (precisa de `criteria` e `exerciseCount`, que o contexto
+  // compartilhado não carrega para todo mundo). O contexto é quem alimenta o <select> de
+  // AdminExercises, o SkillMap e os selos dos Logs — e ele só buscava as competências UMA
+  // vez, no mount do app. Sem avisá-lo aqui, o admin editava a trilha e as outras telas
+  // seguiam mostrando a lista ANTIGA até um F5 (bug relatado em produção).
+  const { reload: reloadSkillsContext } = useSkillsContext();
+
   const load = useCallback(() => {
     setLoading(true);
     Promise.all([api.getSkills(), api.adminSkillOrphans().catch(() => [])])
       .then(([list, orfaos]) => { setSkills(list || []); setOrphans(orfaos || []); })
       .catch((e) => setError(e.message || 'Erro ao carregar as competências.'))
       .finally(() => setLoading(false));
-  }, []);
+    // Ponto único: salvar, apagar e reordenar já chamam `load()`, então propagar daqui
+    // cobre as três operações sem espalhar chamadas por cada handler.
+    reloadSkillsContext();
+  }, [reloadSkillsContext]);
   useEffect(() => { load(); }, [load]);
 
   function openEdit(sk) {

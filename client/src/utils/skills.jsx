@@ -7,7 +7,7 @@
 // A geometria do SkillMap deixou de ser um pentágono literal: os vértices são calculados
 // a partir de N (`360 / N`), então 3, 5 ou 8 competências desenham o polígono certo.
 
-import { createContext, useContext, useEffect, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useState } from 'react';
 import { api } from '../api';
 
 /**
@@ -61,22 +61,42 @@ export function skillLabel(names, skillId) {
 export function useSkills() {
   const [skills, setSkills] = useState(FALLBACK_SKILLS);
   const [loading, setLoading] = useState(true);
+  // `stale` = estamos mostrando o FALLBACK porque a carga falhou, não porque estas são as
+  // competências do sistema. Antes o erro era engolido por um `.catch(() => {})` e a trilha
+  // inteira exibia 5 competências FANTASMA (as originais hardcoded) sem nenhum aviso — numa
+  // instalação que já editou as competências, isso é informação errada apresentada como certa.
+  const [stale, setStale] = useState(false);
 
-  useEffect(() => {
+  const load = useCallback(() => {
     let cancelled = false;
+    setLoading(true);
     api.getSkills()
       .then((list) => {
-        if (cancelled || !Array.isArray(list) || list.length === 0) return;
+        if (cancelled) return;
+        if (!Array.isArray(list) || list.length === 0) { setStale(true); return; }
         setSkills(list);
+        setStale(false);
       })
-      .catch(() => {})
+      .catch((err) => {
+        if (cancelled) return;
+        setStale(true);
+        console.error('[skills] Falha ao carregar as competências do servidor. A trilha está exibindo a lista de fallback, que pode não corresponder às competências reais.', err);
+      })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, []);
 
+  useEffect(() => load(), [load]);
+
   return {
     skills,
     loading,
+    stale,
+    // `reload` é o que fecha o bug relatado em produção: as competências eram buscadas UMA
+    // vez, no mount do app, e ficavam congeladas em memória pela sessão inteira. O admin
+    // editava a trilha e o <select> de AdminExercises seguia mostrando a lista antiga até
+    // um F5 — os dados no servidor estavam certos o tempo todo. Quem edita chama isto.
+    reload: load,
     names: skillNameMap(skills),
     colors: skillColorMap(skills),
   };
@@ -98,5 +118,5 @@ export function SkillsProvider({ children }) {
 
 /** Como `useSkills`, mas reaproveitando a carga do provider. */
 export function useSkillsContext() {
-  return useContext(SkillsContext) || { skills: FALLBACK_SKILLS, loading: false, names: skillNameMap(FALLBACK_SKILLS), colors: skillColorMap(FALLBACK_SKILLS) };
+  return useContext(SkillsContext) || { skills: FALLBACK_SKILLS, loading: false, stale: false, reload: () => {}, names: skillNameMap(FALLBACK_SKILLS), colors: skillColorMap(FALLBACK_SKILLS) };
 }
