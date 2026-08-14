@@ -28,9 +28,18 @@ export default function Home({ user }) {
   const navigate = useNavigate();
   return (
     <div>
-      <div className="home-banner">
-        <img src={`${import.meta.env.BASE_URL}banner.jpeg`} alt="Cada psicólogo é uma esfera de potencial ilimitado" />
-      </div>
+      {/* O banner inteiro é o link de captação (o "CLIQUE AQUI" faz parte da imagem, não é
+          um elemento próprio). Abre em nova aba: sair do Praxis no meio de um atendimento
+          faria o aluno perder a tela. `rel="noopener"` é obrigatório com target=_blank —
+          sem ele a página de destino ganha acesso à nossa aba via `window.opener`. */}
+      <a
+        className="home-banner"
+        href="https://omnia.lucasalbertoni.com/"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        <img src={`${import.meta.env.BASE_URL}banner.jpeg`} alt="OMNIA Formação ACP — inscreva-se" />
+      </a>
 
       <section className="home-hero">
         <div className="eyebrow">Bem-vindo(a), {user?.name?.split(' ')[0] || 'terapeuta'}</div>
