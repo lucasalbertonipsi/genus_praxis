@@ -142,7 +142,7 @@ export default function Avaliacao({ user }) {
   function buildEvalDialog() {
     return messages
       .map((m, i) => {
-        const name = m.role === 'user' ? user?.name || 'Usuário' : 'Genus Práxis · Avaliador';
+        const name = m.role === 'user' ? user?.name || 'Usuário' : 'Genus Praxis · Avaliador';
         if (i === 0) return `[${name}]\n[Transcrição enviada · ${transcript.length} caracteres]`;
         return `[${name}]\n${m.content}`;
       })
@@ -258,7 +258,7 @@ export default function Avaliacao({ user }) {
           return (
             <div key={i} className={`chat-message-row ${msg.role}`}>
               <div className="chat-message-author">
-                {msg.role === 'user' ? user?.name || 'Usuário' : 'Genus Práxis · Avaliador'}
+                {msg.role === 'user' ? user?.name || 'Usuário' : 'Genus Praxis · Avaliador'}
               </div>
 
               {/* Raciocínio do avaliador — só chega para supervisor/admin (o
@@ -289,7 +289,7 @@ export default function Avaliacao({ user }) {
 
         {loading && (
           <div className="chat-message-row assistant">
-            <div className="chat-message-author">Genus Práxis · Avaliador</div>
+            <div className="chat-message-author">Genus Praxis · Avaliador</div>
             <div className="chat-message assistant" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <span className="spinner spinner-sm" />
               <span className="loading-dots">Analisando a sessão</span>

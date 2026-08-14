@@ -1,7 +1,7 @@
 {
   "name": "genus-praxis",
   "version": "1.0.0",
-  "description": "Genus Práxis — Plataforma de Simulação Clínica (white label All_OS, estética laranja)",
+  "description": "Genus Praxis — Plataforma de Simulação Clínica (white label All_OS, estética laranja)",
   "scripts": {
     "server": "node server/index.js",
     "client": "cd client && npx vite --host",

@@ -1,4 +1,4 @@
-# Genus Práxis
+# Genus Praxis
 
 Plataforma de **simulação clínica** — white label do All_OS com a estética laranja
 da marca. O único modo é a **Simulação / Treinamento**: o aluno atende pacientes

@@ -77,9 +77,9 @@ export default function Login({ onLogin }) {
   return (
     <div className="login-container">
       <div className="login-card">
-        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Genus Práxis" className="login-mark" />
+        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Genus Praxis" className="login-mark" />
         <div className="login-eyebrow">Plataforma de Simulação Clínica</div>
-        <h1>Genus <span className="accent">Práxis</span></h1>
+        <h1>Genus <span className="accent">Praxis</span></h1>
         <p className="subtitle">todo ser humano é único e possui um potencial ilimitado</p>
         <div className="login-ornament" />
 

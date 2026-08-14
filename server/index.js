@@ -3302,7 +3302,7 @@ if (require.main === module) {
   const duelsRemoved = pruneExpiredDuels();
   if (duelsRemoved > 0) console.log(`[duels] ${duelsRemoved} duelo(s) expirado(s) removido(s) no boot.`);
   const PORT = process.env.PORT || 3001;
-  app.listen(PORT, () => console.log(`Servidor Genus Práxis rodando na porta ${PORT}`));
+  app.listen(PORT, () => console.log(`Servidor Genus Praxis rodando na porta ${PORT}`));
 }
 
 module.exports = app;

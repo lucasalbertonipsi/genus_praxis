@@ -70,7 +70,7 @@ export default function Duelo({ user }) {
       });
       const link = duel.token ? buildInviteLink(duel.token) : '';
       if (method === 'whatsapp') {
-        const text = `Te desafio para um duelo clínico no Genus Práxis! Atenda ${selectedChar.name} e vamos ver quem se sai melhor. Aceite aqui: ${link}`;
+        const text = `Te desafio para um duelo clínico no Genus Praxis! Atenda ${selectedChar.name} e vamos ver quem se sai melhor. Aceite aqui: ${link}`;
         window.open(`https://wa.me/?text=${encodeURIComponent(text)}`, '_blank', 'noopener');
       }
       setInvite({ duel, method, opponentName: opponentName || 'seu convidado', link });
