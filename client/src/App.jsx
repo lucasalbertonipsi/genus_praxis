@@ -28,6 +28,7 @@ import NotificationBell from './components/NotificationBell';
 import SystemUpdates from './components/SystemUpdates';
 import LockedModal from './components/LockedModal';
 import AnnouncementPopup from './components/AnnouncementPopup';
+import ErrorBoundary from './components/ErrorBoundary';
 import { FeaturesProvider, useFeatures } from './features';
 import { SkillsProvider } from './utils/skills';
 import { api, getToken, clearAuth, onSessionExpired, onVisitorExpired, DEMO } from './api';
@@ -203,7 +204,7 @@ function AppShell({ onUserChange }) {
         </button>
         <div className="mobile-topbar-logo">
           <img src={`${import.meta.env.BASE_URL}logo.png`} alt="" className="brand-mark-sm" />
-          <span>Genus <span className="accent">Práxis</span></span>
+          <span>Genus <span className="accent">Praxis</span></span>
         </div>
         <Link to="/perfil" className="mobile-topbar-avatar" aria-label="Perfil">
           {user.profilePhoto ? <img src={user.profilePhoto} alt={user.name} /> : ICONS.user}
@@ -224,8 +225,8 @@ function AppShell({ onUserChange }) {
           </svg>
         </button>
         <div className="sidebar-logo">
-          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Genus Práxis" className="brand-mark" />
-          <h1>Genus <span className="accent">Práxis</span></h1>
+          <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Genus Praxis" className="brand-mark" />
+          <h1>Genus <span className="accent">Praxis</span></h1>
           <p>Simulação Clínica</p>
           {DEMO && <span className="sidebar-demo">Demonstração</span>}
         </div>
@@ -316,6 +317,10 @@ function AppShell({ onUserChange }) {
       </aside>
 
       <main className="main-content">
+        {/* Demanda #11: um erro de renderização em UMA tela derrubava o app inteiro (tela
+            preta). O boundary contém a falha na tela; a sidebar e o menu continuam de pé.
+            `resetKey` = a rota atual: ao navegar para outra tela, o erro é limpo. */}
+        <ErrorBoundary resetKey={location.pathname}>
         <Routes>
           <Route path="/inicio" element={<Home user={user} />} />
 
@@ -354,6 +359,7 @@ function AppShell({ onUserChange }) {
 
           <Route path="*" element={<Navigate to={defaultRoute(user)} replace />} />
         </Routes>
+        </ErrorBoundary>
       </main>
 
       {lockedFeature && (
@@ -376,7 +382,7 @@ function VisitorExpired({ onLogout }) {
   return (
     <div className="login-container">
       <div className="login-card">
-        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Genus Práxis" className="login-mark" />
+        <img src={`${import.meta.env.BASE_URL}logo.png`} alt="Genus Praxis" className="login-mark" />
         <div className="login-eyebrow">Acesso de visitante</div>
         <h1>Seu acesso <span className="accent">expirou</span></h1>
         <div className="login-ornament" />
