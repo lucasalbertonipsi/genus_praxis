@@ -1,0 +1,32 @@
+[
+  {
+    "id": 1,
+    "name": "Empatia",
+    "color": "#5ee255",
+    "criteria": "Precisão empática x3 + Sentimentos/significados x2 + Ajuste de compreensão x1"
+  },
+  {
+    "id": 2,
+    "name": "Experiencialidade",
+    "color": "#dc56ca",
+    "criteria": "Experiência presente x3 + Aprofundamento/simbolização x2 + Fluxo experiencial x1"
+  },
+  {
+    "id": 3,
+    "name": "Não diretividade",
+    "color": "#5155c8",
+    "criteria": "Não condução x3 + Não indução x2 + Locus interno x2"
+  },
+  {
+    "id": 4,
+    "name": "Aceitação",
+    "color": "#fb6060",
+    "criteria": "Resposta não avaliativa x3 + Conteúdos difíceis x2 + Não moralização x1"
+  },
+  {
+    "id": 5,
+    "name": "Relacionalidade",
+    "color": "#f2b531",
+    "criteria": "Aqui-e-agora x3 + Rupturas/tensão x2 + Ritmo/silêncio x1"
+  }
+]

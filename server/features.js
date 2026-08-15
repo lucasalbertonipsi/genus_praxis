@@ -11,48 +11,53 @@
 
 /**
  * As funcionalidades que o admin liga/desliga. `defaults` é o estado de um sistema
- * novo: aluno com tudo, visitante com o essencial.
+ * novo: **aluno com tudo, visitante com NADA**.
  *
- * `avaliacao` é o antigo `visitorEvaluationEnabled` — ela nasce DESLIGADA para o
- * visitante porque cada avaliação custa uma chamada de IA, e o visitante é um lead
- * (pode entrar aos montes). Ligar é uma decisão consciente do admin.
+ * O visitante nasce com tudo bloqueado por decisão do dono do produto: ele é um lead que
+ * entra sem senha e pode entrar aos montes. O admin abre o que quiser, quando quiser, em
+ * *Admin → Acessos* — e cada liberação passa a ser uma escolha consciente, não um padrão
+ * herdado que ninguém revisou.
+ *
+ * O aluno segue com todas ligadas, inclusive `avaliacao` (o antigo
+ * `visitorEvaluationEnabled`). Para o visitante essa é especialmente cara: cada avaliação
+ * é uma chamada de IA paga.
  */
 const FEATURES = [
   {
     key: 'competitivo',
     label: 'Competitivo',
     description: 'Partidas valendo MMR e posição no ranking.',
-    defaults: { aluno: true, visitante: true },
+    defaults: { aluno: true, visitante: false },
   },
   {
     key: 'duelo',
     label: 'Duelo',
     description: 'Desafiar outro jogador no mesmo paciente. Visitante duela só com visitante.',
-    defaults: { aluno: true, visitante: true },
+    defaults: { aluno: true, visitante: false },
   },
   {
     key: 'progressao',
     label: 'Progressão',
     description: 'Comparar dois atendimentos do mesmo paciente e medir a evolução.',
-    defaults: { aluno: true, visitante: true },
+    defaults: { aluno: true, visitante: false },
   },
   {
     key: 'objetivos',
     label: 'Objetivos',
     description: 'Missões diárias, conquistas e constância (streak).',
-    defaults: { aluno: true, visitante: true },
+    defaults: { aluno: true, visitante: false },
   },
   {
     key: 'logsSociais',
     label: 'Logs sociais',
     description: 'Histórico de duelos agrupado por oponente.',
-    defaults: { aluno: true, visitante: true },
+    defaults: { aluno: true, visitante: false },
   },
   {
     key: 'ranking',
     label: 'Ranking',
     description: 'Tabela de posições. Aluno e visitante têm rankings SEPARADOS.',
-    defaults: { aluno: true, visitante: true },
+    defaults: { aluno: true, visitante: false },
   },
   {
     key: 'avaliacao',
