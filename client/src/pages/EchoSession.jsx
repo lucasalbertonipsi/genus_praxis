@@ -15,7 +15,7 @@ import '../styles/Session.css';
 // O modo competitivo (query string) alimenta o MMR ao finalizar; treino não.
 // NUNCA aceita sessionType='neuro' — todo o código de neuro foi removido do porte.
 
-const SKIP_PROMPT = 'O usuário finalizou a sessão de hoje. Agora passaremos para a próxima sessão. Você (o paciente) acaba de entrar na sessão novamente, na próxima semana. Descreva o que aconteceu na sua semana; você já está na sala novamente com o terapeuta.';
+const SKIP_PROMPT = 'O usuário finalizou a sessão de hoje. Agora passaremos para a próxima sessão. Você (o cliente) acaba de entrar na sessão novamente, na próxima semana. Descreva o que aconteceu na sua semana; você já está na sala novamente com o terapeuta.';
 const SKIP_MIN_DELAY_MS = 2200;
 const SAVE_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 // Limite de sessões por atendimento (período de teste). Só freeplay.
@@ -326,7 +326,7 @@ export default function EchoSession({ user, sessionType = 'freeplay' }) {
   }
   function buildTranscript() {
     return messages.filter((m) => !m.isSystem && !m.type).map((m) => {
-      const author = m.role === 'user' ? (user?.name || 'Aluno') : (item?.name || 'Paciente');
+      const author = m.role === 'user' ? (user?.name || 'Aluno') : (item?.name || 'Cliente');
       const star = m.highlighted ? ' ★' : '';
       const comment = m.highlighted && m.comment ? `\n   {${m.comment}}` : '';
       return `[${author}${star}]\n${m.content}${comment}`;
@@ -372,7 +372,7 @@ export default function EchoSession({ user, sessionType = 'freeplay' }) {
     setEvalError('');
 
     const transcriptText = visibleMessages.map((m) => {
-      const author = m.role === 'user' ? user.name : (item?.name || 'Paciente');
+      const author = m.role === 'user' ? user.name : (item?.name || 'Cliente');
       const star = m.highlighted ? ' ★' : '';
       const comment = m.highlighted && m.comment ? `\n   {${m.comment}}` : '';
       return `[${author}${star}]\n${m.content}${comment}`;
@@ -626,7 +626,7 @@ export default function EchoSession({ user, sessionType = 'freeplay' }) {
         ? (skipEvaluator
             ? 'Simulação livre — sessão de demonstração, sem avaliação ao final.'
             : 'Simulação livre — você recebe uma avaliação da IA ao final (demonstração).')
-        : 'Simulação livre — atenda o paciente como quiser. Use o botão de destaque (★) para marcar intervenções para revisão.');
+        : 'Simulação livre — atenda o cliente como quiser. Use o botão de destaque (★) para marcar intervenções para revisão.');
 
   return (
     <div className="session-page chat-container echo-chat">
@@ -701,7 +701,7 @@ export default function EchoSession({ user, sessionType = 'freeplay' }) {
                       <div className="session-break-loader"><span className="dot" /><span className="dot" /><span className="dot" /></div>
                     </>
                   ) : (
-                    <div className="session-break-text">Seu paciente chegou para a sessão da próxima semana. Pode iniciar o atendimento.</div>
+                    <div className="session-break-text">Seu cliente chegou para a sessão da próxima semana. Pode iniciar o atendimento.</div>
                   )}
                 </div>
                 <div className="session-break-line" />
@@ -710,7 +710,7 @@ export default function EchoSession({ user, sessionType = 'freeplay' }) {
           }
           if (msg.isSystem) return null;
           const isUser = msg.role === 'user';
-          const author = isUser ? user.name : (item?.name || 'Paciente');
+          const author = isUser ? user.name : (item?.name || 'Cliente');
           return (
             <div key={i}>
               <div className={`chat-message-row ${msg.role} ${msg.highlighted ? 'highlighted' : ''}`}>
@@ -736,7 +736,7 @@ export default function EchoSession({ user, sessionType = 'freeplay' }) {
 
         {isTyping && (
           <div className="chat-message-row assistant">
-            <div className="chat-message-author">{item?.name || 'Paciente'}</div>
+            <div className="chat-message-author">{item?.name || 'Cliente'}</div>
             <div className="chat-message assistant" style={{ fontStyle: 'italic', opacity: 0.7 }}><span className="loading-dots">Pensando</span></div>
           </div>
         )}
@@ -836,7 +836,7 @@ export default function EchoSession({ user, sessionType = 'freeplay' }) {
         <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) setConfirmingSkip(false); }}>
           <div className="modal" style={{ maxWidth: 480 }}>
             <h3>Avançar para a próxima sessão</h3>
-            <p className="modal-text">Tem certeza que deseja ir para a próxima sessão? Lembre-se de fazer um encerramento primeiro com seu paciente — essa função é um <em>time skip</em>.</p>
+            <p className="modal-text">Tem certeza que deseja ir para a próxima sessão? Lembre-se de fazer um encerramento primeiro com seu cliente — essa função é um <em>time skip</em>.</p>
             <div className="modal-actions">
               <button type="button" className="btn btn-outline" onClick={() => setConfirmingSkip(false)}>Cancelar</button>
               <button type="button" className="btn btn-primary" onClick={doSkipSession}>Passar para a próxima sessão</button>
@@ -862,7 +862,7 @@ export default function EchoSession({ user, sessionType = 'freeplay' }) {
           <div className="modal" style={{ maxWidth: 520 }}>
             <h3>Destacar mensagem</h3>
             <p className="modal-text">Por que você está destacando essa intervenção? <em>(opcional)</em></p>
-            <textarea value={highlightDraft} onChange={(e) => setHighlightDraft(e.target.value)} placeholder="Ex: testei uma reformulação, paciente reagiu emocionalmente…" style={{ minHeight: 120 }} autoFocus />
+            <textarea value={highlightDraft} onChange={(e) => setHighlightDraft(e.target.value)} placeholder="Ex: testei uma reformulação, cliente reagiu emocionalmente…" style={{ minHeight: 120 }} autoFocus />
             <div className="modal-actions">
               <button type="button" className="btn btn-outline" onClick={() => setHighlightTarget(null)}>Cancelar</button>
               <button type="button" className="btn btn-primary" onClick={saveHighlight}>Salvar destaque</button>

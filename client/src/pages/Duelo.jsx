@@ -4,9 +4,9 @@ import { api, assetUrl } from '../api';
 import Typewriter from '../components/Typewriter';
 import '../styles/Duelo.css';
 
-// Aba Duelo — avaliação comparada entre duas pessoas atendendo o MESMO paciente.
+// Aba Duelo — avaliação comparada entre duas pessoas atendendo o MESMO cliente.
 // Fluxo de criação:
-//   1. Escolher o paciente (personagem de simulação) que você vai atender.
+//   1. Escolher o cliente (personagem de simulação) que você vai atender.
 //   2. Escolher o oponente: outro aluno (convite in-app ou WhatsApp) ou um
 //      visitante (link aberto).
 //   3. Despachar o convite e iniciar a sua sessão. A nota da sua sessão vale
@@ -167,7 +167,7 @@ export default function Duelo({ user }) {
         <div className="eyebrow">Duelo</div>
         <h2><Typewriter text="Due" /><span className="accent"><Typewriter text="lo" delayStart={140} /></span></h2>
         <p>
-          Avaliação comparada: você e outra pessoa atendem o <strong>mesmo paciente</strong>, cada um na sua
+          Avaliação comparada: você e outra pessoa atendem o <strong>mesmo cliente</strong>, cada um na sua
           sessão. No fim, o avaliador comparativo lê os dois atendimentos lado a lado, dá uma nota a cada um e
           aponta o vencedor.
         </p>
@@ -178,7 +178,7 @@ export default function Duelo({ user }) {
 
       {/* Indicador de passos */}
       <div className="duel-steps">
-        <span className={step === 'character' ? 'active' : 'done'}>1 · Paciente</span>
+        <span className={step === 'character' ? 'active' : 'done'}>1 · Cliente</span>
         <span className="duel-steps-sep">→</span>
         <span className={step === 'opponent' ? 'active' : ''}>2 · Oponente</span>
       </div>
@@ -189,7 +189,7 @@ export default function Duelo({ user }) {
         </div>
       ) : step === 'character' ? (
         <>
-          <h3 className="duel-section-title">Escolha o paciente que você vai atender no duelo</h3>
+          <h3 className="duel-section-title">Escolha o cliente que você vai atender no duelo</h3>
           {characters.length === 0 ? (
             <div className="card" style={{ textAlign: 'center', padding: '40px 24px', color: 'var(--text-soft)' }}>
               Nenhum personagem cadastrado ainda.
@@ -209,7 +209,7 @@ export default function Duelo({ user }) {
       ) : (
         <>
           <div className="duel-selected-char">
-            <span>Paciente: <strong>{selectedChar?.name}</strong></span>
+            <span>Cliente: <strong>{selectedChar?.name}</strong></span>
             <button className="btn btn-ghost btn-sm" onClick={() => { setStep('character'); setSelectedChar(null); }}>trocar</button>
           </div>
 

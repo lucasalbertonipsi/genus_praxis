@@ -119,7 +119,7 @@ export default function DuelAccept({ user }) {
       <div className="card duel-accept-card">
         <p style={{ fontSize: 16, lineHeight: 1.6 }}>
           <strong>{info?.challengerName || 'Alguém'}</strong> te desafiou para um duelo:
-          atender <strong>{info?.characterName}</strong>. Vocês atendem o mesmo paciente, cada
+          atender <strong>{info?.characterName}</strong>. Vocês atendem o mesmo cliente, cada
           um na sua sessão, e o avaliador comparativo decide o vencedor.
         </p>
         {info?.taken ? (

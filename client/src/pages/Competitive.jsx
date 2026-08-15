@@ -35,7 +35,7 @@ export default function Competitive({ user }) {
         <div className="eyebrow">Ranqueado</div>
         <h2><Typewriter text="Compe" /><span className="accent"><Typewriter text="titivo" delayStart={180} /></span></h2>
         <p>
-          Os mesmos pacientes da Simulação, agora valendo ranking. Cada atendimento finalizado
+          Os mesmos clientes da Simulação, agora valendo ranking. Cada atendimento finalizado
           atualiza o seu <strong>MMR</strong> — e a <strong>dificuldade</strong> de cada personagem se ajusta ao
           desempenho coletivo. As primeiras partidas são de calibração.
         </p>
@@ -89,7 +89,7 @@ export default function Competitive({ user }) {
                 </div>
               </div>
               {char.description && <p>{char.description}</p>}
-              <div className="difficulty-tag" title="Dificuldade atual deste paciente (1–100), ajustada pelo desempenho coletivo">
+              <div className="difficulty-tag" title="Dificuldade atual deste cliente (1–100), ajustada pelo desempenho coletivo">
                 DIFICULDADE: <strong>{Number.isFinite(char.difficulty) ? char.difficulty : '—'}</strong>
               </div>
             </div>

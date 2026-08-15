@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 
-// Seletor de foto de paciente. Lê um arquivo de imagem e gera, no navegador via
+// Seletor de foto de cliente. Lê um arquivo de imagem e gera, no navegador via
 // canvas, dois JPEGs: `full` (imagem inteira, até 1200px) e `icon` (quadrado
 // 400×400, recorte central). Devolve { iconDataUrl, fullDataUrl } via onChange.
 function loadImage(file) {
@@ -69,7 +69,7 @@ export default function PhotoPicker({ currentUrl, onChange, onClear }) {
   return (
     <div className="photo-picker">
       <div className="photo-picker-preview">
-        {shown ? <img src={shown} alt="Foto do paciente" /> : <span className="photo-picker-empty">sem foto</span>}
+        {shown ? <img src={shown} alt="Foto do cliente" /> : <span className="photo-picker-empty">sem foto</span>}
       </div>
       <div className="photo-picker-actions">
         <button type="button" className="btn btn-outline btn-sm" onClick={() => inputRef.current?.click()} disabled={busy}>

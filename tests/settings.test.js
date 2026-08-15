@@ -37,10 +37,16 @@ describe('GET /api/settings', () => {
     expect(typeof res.body.lockedFeatureMessage).toBe('string');
   });
 
-  it('myFeatures é resolvido POR PAPEL: avaliação nasce off p/ visitante, on p/ aluno', async () => {
+  it('myFeatures é resolvido POR PAPEL: avaliação off p/ visitante, on p/ aluno', async () => {
+    // O estado é montado EXPLICITAMENTE, não herdado dos defaults do catálogo: o que se
+    // testa aqui é a resolução por papel, não qual é o padrão de fábrica. (A fixture
+    // libera tudo para os dois papéis; quem cobre os defaults é `features.test.js`.)
+    writeData('settings.json', featureAccess({ avaliacao: { aluno: true, visitante: false } }));
     const aluno = await loginAs('aluno');
     const v = await loginVisitor();
     expect((await get('/api/settings', aluno)).body.myFeatures.avaliacao).toBe(true);
+    // O visitante nasce com TUDO bloqueado (decisão do dono do produto). A avaliação é
+    // só o caso mais caro: cada uma é uma chamada de IA paga.
     expect((await get('/api/settings', v)).body.myFeatures.avaliacao).toBe(false);
   });
 
@@ -85,8 +91,8 @@ describe('GET /api/settings', () => {
     const aluno = await loginAs('aluno');
     const res = await get('/api/settings', aluno);
     expect(res.body.featureAccess.naoExiste).toBeUndefined();
-    expect(res.body.featureAccess.duelo).toEqual({ aluno: false, visitante: true });
-    expect(res.body.featureAccess.ranking).toEqual({ aluno: true, visitante: true });
+    expect(res.body.featureAccess.duelo).toEqual({ aluno: false, visitante: false });
+    expect(res.body.featureAccess.ranking).toEqual({ aluno: true, visitante: false });
   });
 });
 

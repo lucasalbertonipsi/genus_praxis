@@ -7,6 +7,10 @@
 
 const path = require('path');
 const { defaultSkills } = require('../server/skills');
+// As chaves do catálogo de funcionalidades, para a fixture liberar TODAS explicitamente
+// (ver o comentário em `settings.json`, abaixo).
+const { FEATURES: _FEATURES } = require('../server/features');
+const FEATURE_KEYS = _FEATURES.map((f) => f.key);
 const fs = require('fs');
 const os = require('os');
 const bcrypt = require('bcryptjs');
@@ -118,9 +122,22 @@ function resetData(overrides = {}) {
     'duels.json': [],
     'notifications.json': {},
     'announcements.json': [],
-    // A matriz de acesso (demanda #4) fica AUSENTE de propósito: o servidor a completa com
-    // os defaults do catálogo (`normalizeFeatureAccess`), que é o estado de um sistema novo.
-    'settings.json': { evaluatorEnabled: false },
+    // A matriz de acesso (demanda #4) é EXPLÍCITA na fixture, com tudo liberado.
+    //
+    // Antes ela ficava ausente e o servidor a completava com os defaults do catálogo — o
+    // que acoplava ~24 testes a uma decisão de PRODUTO. Quando o dono do produto pediu
+    // "visitante nasce com tudo bloqueado", esses testes quebraram em massa sem nenhum bug
+    // de código: eles testavam duelo, ranking e progressão do visitante, e passaram a
+    // esbarrar no cadeado.
+    //
+    // Um teste de duelo deve falhar quando o DUELO quebra, não quando o padrão de acesso
+    // muda. Quem testa o padrão em si é `features.test.js`, que lê o catálogo direto.
+    'settings.json': {
+      evaluatorEnabled: false,
+      featureAccess: Object.fromEntries(
+        FEATURE_KEYS.map((k) => [k, { aluno: true, visitante: true }]),
+      ),
+    },
     ...overrides,
   };
   for (const [file, data] of Object.entries(writes)) {

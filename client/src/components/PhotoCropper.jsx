@@ -9,7 +9,7 @@ import '../styles/PhotoCropper.css';
 // A geometria vive em `cropMath.js` (módulo puro, testável). Aqui ficam só os
 // eventos, o estado e o canvas.
 //
-// A foto de PACIENTE não usa este componente: ela precisa de `{icon, full}` para
+// A foto de CLIENTE não usa este componente: ela precisa de `{icon, full}` para
 // `api.setFreeplayPhoto`, e o AdminFreeplay usa o <PhotoPicker> (recorte central).
 const currentStage = () => fitStage(typeof window === 'undefined' ? NaN : window.innerWidth);
 

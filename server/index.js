@@ -329,6 +329,9 @@ if (!fs.existsSync(path.join(DATA_DIR, 'notifications.json'))) writeJSON('notifi
 // cada usuário depois de publicados, e depois ficam na lista de notificações.
 if (!fs.existsSync(path.join(DATA_DIR, 'announcements.json'))) writeJSON('announcements.json', []);
 // Competências da trilha (demandas #5a/#5b). Nasce com as 5 originais.
+// As competências reais do cliente vivem em `server/seed/skills.json` (versionado) e já
+// foram copiadas para o DATA_DIR acima. O `defaultSkills()` hardcoded fica como último
+// recurso, para o caso de o arquivo de seed sumir — sem ele a trilha nasceria vazia.
 if (!fs.existsSync(path.join(DATA_DIR, 'skills.json'))) writeJSON('skills.json', defaultSkills());
 
 if (!fs.existsSync(path.join(DATA_DIR, 'settings.json'))) {
@@ -663,7 +666,7 @@ function canUsePatient(user, character) {
 
 function patientBlockedResponse(res) {
   return res.status(403).json({
-    error: 'Este paciente não está liberado para o seu perfil.',
+    error: 'Este cliente não está liberado para o seu perfil.',
     patientLocked: true,
   });
 }
@@ -2275,7 +2278,7 @@ function resolveChatPrompt(type, itemId, user) {
   }
   const c = readJSON('freeplay-characters.json').find((x) => String(x.id) === String(itemId));
   if (!c) return { status: 404, error: 'Personagem não encontrado' };
-  if (!canUsePatient(user, c)) return { status: 403, patientLocked: true, error: 'Este paciente não está liberado para o seu perfil.' };
+  if (!canUsePatient(user, c)) return { status: 403, patientLocked: true, error: 'Este cliente não está liberado para o seu perfil.' };
   return { systemPrompt: buildFreeplayPrompt(c.specificInstruction), character: c };
 }
 
@@ -2817,7 +2820,7 @@ async function runComparativeEvaluation(duel) {
   const openai = getOpenAI();
   const nameA = (duel.challenger && duel.challenger.name) || 'Aluno A';
   const nameB = (duel.opponent && duel.opponent.name) || 'Aluno B';
-  const charName = (duel.character && duel.character.name) || 'Paciente';
+  const charName = (duel.character && duel.character.name) || 'Cliente';
   const logA = transcriptFromMessages(duel.challenger.messages, nameA, charName);
   const logB = transcriptFromMessages(duel.opponent.messages, nameB, charName);
 
@@ -3271,7 +3274,7 @@ app.post('/api/progression/evaluate', requireAuth, requireFeature('progressao'),
   const prior = readJSON('logs.json')
     .filter((l) => l.userId === req.user.id && String(l.itemId) === String(characterId))
     .sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp))[0];
-  if (!prior) return res.status(400).json({ error: 'Não há um atendimento anterior com esse paciente.' });
+  if (!prior) return res.status(400).json({ error: 'Não há um atendimento anterior com esse cliente.' });
 
   const openai = getOpenAI();
   if (!openai) return res.json({ evaluation: '[Modo demonstração — OPENAI_API_KEY não configurada] Avaliação de progressão indisponível.', criteria: null });
@@ -3352,7 +3355,7 @@ app.post('/api/entrevistador/character', requireAuth, requireRole('admin'), asyn
     if (!source.trim()) return res.status(400).json({ error: 'Envie `specificInstruction` ou a transcrição (`text`/`messages`).' });
     const ex = extractBlocos(source);
     if (!ex.ready) {
-      return res.status(422).json({ error: 'O entrevistador ainda não gerou o prompt do paciente (seção "## [I. CONTENÇÃO]").' });
+      return res.status(422).json({ error: 'O entrevistador ainda não gerou o prompt do cliente (seção "## [I. CONTENÇÃO]").' });
     }
     bloco2 = ex.bloco2;
     if (!bloco1) bloco1 = ex.bloco1;

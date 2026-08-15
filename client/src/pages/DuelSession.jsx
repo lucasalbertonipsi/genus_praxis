@@ -413,7 +413,7 @@ export default function DuelSession({ user }) {
         {messages.map((msg, i) => {
           if (msg.isSystem) return null;
           const isUser = msg.role === 'user';
-          const author = isUser ? user.name : (character?.name || 'Paciente');
+          const author = isUser ? user.name : (character?.name || 'Cliente');
           return (
             <div key={i}>
               <div className={`chat-message-row ${msg.role} ${msg.highlighted ? 'highlighted' : ''}`}>
@@ -442,7 +442,7 @@ export default function DuelSession({ user }) {
         })}
         {isTyping && (
           <div className="chat-message-row assistant">
-            <div className="chat-message-author">{character?.name || 'Paciente'}</div>
+            <div className="chat-message-author">{character?.name || 'Cliente'}</div>
             <div className="chat-message assistant" style={{ fontStyle: 'italic', opacity: 0.7 }}>
               <span className="loading-dots">Pensando</span>
             </div>

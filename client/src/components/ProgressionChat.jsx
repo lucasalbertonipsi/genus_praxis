@@ -31,7 +31,7 @@ export default function ProgressionChat({ patient, user, onEvaluationComplete, o
     return () => clearInterval(timerRef.current);
   }, []);
 
-  // Kickoff: paciente fala primeiro
+  // Kickoff: cliente fala primeiro
   useEffect(() => {
     if (initializedRef.current || sessionStarted) return;
     initializedRef.current = true;
@@ -150,7 +150,7 @@ export default function ProgressionChat({ patient, user, onEvaluationComplete, o
   function downloadEvaluation() {
     if (!evaluationText) return;
     const text = `AVALIAÇÃO DE PROGRESSÃO
-Paciente: ${patient.name}
+Cliente: ${patient.name}
 Data: ${new Date().toLocaleString('pt-BR')}
 
 ${evaluationText}`;

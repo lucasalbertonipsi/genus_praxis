@@ -11,7 +11,7 @@ import { useSkillsContext, skillLabel } from '../utils/skills';
 import '../styles/Session.css';
 
 // Sessão de EXERCÍCIO da Trilha de Competências (single-session, sem time skip).
-// Rota: /chat/exercise/:id. O paciente do exercício abre a conversa; ao finalizar,
+// Rota: /chat/exercise/:id. O cliente do exercício abre a conversa; ao finalizar,
 // o servidor avalia (avaliador global OU o evaluatorPrompt customizado do exercício,
 // escolhido server-side pelo context) e o log é salvo com type:'exercise'.
 const SESSION_TYPE = 'exercise';
@@ -275,7 +275,7 @@ export default function ChatSession({ user }) {
   }
   function buildTranscript() {
     return messages.filter((m) => !m.isSystem).map((m) => {
-      const author = m.role === 'user' ? (user?.name || 'Aluno') : (item?.title || 'Paciente');
+      const author = m.role === 'user' ? (user?.name || 'Aluno') : (item?.title || 'Cliente');
       const star = m.highlighted ? ' ★' : '';
       const comment = m.highlighted && m.comment ? `\n   {${m.comment}}` : '';
       return `[${author}${star}]\n${m.content}${comment}`;
@@ -321,7 +321,7 @@ export default function ChatSession({ user }) {
     setEvalError('');
 
     const transcriptText = visibleMessages.map((m) => {
-      const author = m.role === 'user' ? user.name : (item?.title || 'Paciente');
+      const author = m.role === 'user' ? user.name : (item?.title || 'Cliente');
       const star = m.highlighted ? ' ★' : '';
       const comment = m.highlighted && m.comment ? `\n   {${m.comment}}` : '';
       return `[${author}${star}]\n${m.content}${comment}`;
@@ -599,14 +599,14 @@ export default function ChatSession({ user }) {
       <div className={`chat-messages ${!sessionStarted ? 'locked' : ''}`}>
         {messages.filter((m) => !m.isSystem).length === 0 && !sessionStarted && (
           <div className="empty-chat">
-            Ao iniciar, o paciente do exercício abre a conversa. Use o botão de destaque (★) para marcar suas próprias intervenções para revisão posterior.
+            Ao iniciar, o cliente do exercício abre a conversa. Use o botão de destaque (★) para marcar suas próprias intervenções para revisão posterior.
           </div>
         )}
 
         {messages.map((msg, i) => {
           if (msg.isSystem) return null;
           const isUser = msg.role === 'user';
-          const author = isUser ? user.name : (item?.title || 'Paciente');
+          const author = isUser ? user.name : (item?.title || 'Cliente');
           return (
             <div key={i}>
               <div className={`chat-message-row ${msg.role} ${msg.highlighted ? 'highlighted' : ''}`}>
@@ -632,7 +632,7 @@ export default function ChatSession({ user }) {
 
         {isTyping && (
           <div className="chat-message-row assistant">
-            <div className="chat-message-author">{item?.title || 'Paciente'}</div>
+            <div className="chat-message-author">{item?.title || 'Cliente'}</div>
             <div className="chat-message assistant" style={{ fontStyle: 'italic', opacity: 0.7 }}><span className="loading-dots">Pensando</span></div>
           </div>
         )}
@@ -643,7 +643,7 @@ export default function ChatSession({ user }) {
         <div className="start-session-area">
           <div className="start-session-card">
             <h4>Pronto para começar?</h4>
-            <p>Ao iniciar, o paciente do exercício abrirá a conversa.</p>
+            <p>Ao iniciar, o cliente do exercício abrirá a conversa.</p>
             <div style={{ display: 'flex', gap: 10, flexWrap: 'wrap', justifyContent: 'center' }}>
               <button className="btn btn-primary btn-lg" onClick={handleStartSession} disabled={!item}>Iniciar atendimento</button>
               <button className="btn btn-outline btn-lg" onClick={() => fileInputRef.current?.click()} disabled={!item} title="Retomar a partir de um arquivo de save (.json)">Carregar save</button>
@@ -731,7 +731,7 @@ export default function ChatSession({ user }) {
           <div className="modal" style={{ maxWidth: 520 }}>
             <h3>Destacar mensagem</h3>
             <p className="modal-text">Por que você está destacando essa intervenção? <em>(opcional)</em></p>
-            <textarea value={highlightDraft} onChange={(e) => setHighlightDraft(e.target.value)} placeholder="Ex: testei uma reformulação, paciente reagiu emocionalmente…" style={{ minHeight: 120 }} autoFocus />
+            <textarea value={highlightDraft} onChange={(e) => setHighlightDraft(e.target.value)} placeholder="Ex: testei uma reformulação, cliente reagiu emocionalmente…" style={{ minHeight: 120 }} autoFocus />
             <div className="modal-actions">
               <button type="button" className="btn btn-outline" onClick={() => setHighlightTarget(null)}>Cancelar</button>
               <button type="button" className="btn btn-primary" onClick={saveHighlight}>Salvar destaque</button>

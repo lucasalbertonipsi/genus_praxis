@@ -15,7 +15,7 @@ export default function FreePlay({ user }) {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // A fonte de verdade da "melhor nota com este paciente" é o log — o EchoSession
+    // A fonte de verdade da "melhor nota com este cliente" é o log — o EchoSession
     // (freeplay) não grava em progress.json, só em logs.json.
     Promise.all([
       api.getFreeplay(),
@@ -49,7 +49,7 @@ export default function FreePlay({ user }) {
         <div className="eyebrow">Prática</div>
         <h2><Typewriter text="Simu" /><span className="accent"><Typewriter text="lação" delayStart={180} /></span></h2>
         <p>
-          Atenda pacientes simulados para praticar escuta, manejo relacional e tempo de sessão.
+          Atenda clientes simulados para praticar escuta, manejo relacional e tempo de sessão.
           Ao finalizar, o log é salvo no seu histórico e enviado para análise.
         </p>
         <div className="ornament" />
@@ -85,7 +85,7 @@ export default function FreePlay({ user }) {
                     <div className="character-card-header">
                       <h3>{char.name}</h3>
                       {Number.isFinite(charBest) && (
-                        <span title="Sua maior nota com este paciente"><ScoreBadge score={charBest} /></span>
+                        <span title="Sua maior nota com este cliente"><ScoreBadge score={charBest} /></span>
                       )}
                     </div>
                     {char.age != null && char.age !== '' && <div className="age">{char.age} anos</div>}
@@ -93,12 +93,12 @@ export default function FreePlay({ user }) {
                 </div>
                 {char.description && <p>{char.description}</p>}
                 {Number.isFinite(char.difficulty) && (
-                  <div className="difficulty-tag" title="Dificuldade atual deste paciente (1–100), ajustada pelo desempenho coletivo no modo competitivo">
+                  <div className="difficulty-tag" title="Dificuldade atual deste cliente (1–100), ajustada pelo desempenho coletivo no modo competitivo">
                     DIFICULDADE: <strong>{char.difficulty}</strong>
                   </div>
                 )}
                 {isReturn && (
-                  <div className="progression-tag" title="Você já atendeu este paciente">↩ Reatendimento</div>
+                  <div className="progression-tag" title="Você já atendeu este cliente">↩ Reatendimento</div>
                 )}
               </div>
             );
