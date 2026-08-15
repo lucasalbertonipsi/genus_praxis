@@ -112,7 +112,7 @@ export default function AdminExercises() {
         <div>
           <div className="eyebrow">Administração</div>
           <h2><Typewriter text="Exercícios da " /><span className="accent"><Typewriter text="Trilha" delayStart={420} /></span></h2>
-          <p>Cadastre os exercícios da trilha de prática deliberada. Cada exercício tem dois prompts: o do paciente (personagem da simulação) e o do avaliador (que dá a nota ao final).</p>
+          <p>Cadastre os exercícios da trilha de prática deliberada. Cada exercício tem dois prompts: o do cliente (personagem da simulação) e o do avaliador (que dá a nota ao final).</p>
         </div>
         <button className="btn btn-primary" onClick={openCreate}>+ Novo Exercício</button>
       </div>
@@ -188,14 +188,14 @@ export default function AdminExercises() {
               </div>
               <div>
                 <label htmlFor="title">Título</label>
-                <input id="title" name="title" type="text" value={form.title} onChange={handleChange} placeholder="Ex: Primeira Sessão com paciente ansioso" required />
+                <input id="title" name="title" type="text" value={form.title} onChange={handleChange} placeholder="Ex: Primeira Sessão com cliente ansioso" required />
               </div>
               <div>
                 <label htmlFor="description">Descrição visível ao aluno</label>
                 <input id="description" name="description" type="text" value={form.description} onChange={handleChange} placeholder="Frase curta que o aluno vê antes de iniciar" />
               </div>
               <div>
-                <label htmlFor="specificInstruction">Prompt do paciente (personagem)</label>
+                <label htmlFor="specificInstruction">Prompt do cliente (personagem)</label>
                 <textarea id="specificInstruction" name="specificInstruction" value={form.specificInstruction} onChange={handleChange} placeholder="Descreva o personagem, contexto clínico e comportamentos esperados que a IA deve incorporar durante a simulação…" style={{ minHeight: 160 }} />
               </div>
               <div>

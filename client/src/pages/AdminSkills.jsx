@@ -1,9 +1,9 @@
 // Competências da Trilha — editar, adicionar, remover, reordenar (demandas #5a e #5b).
 //
 // D5: esta tela PRECISA explicar o sistema. O admin não está mudando um rótulo — o campo
-// "critérios" entra no system prompt do paciente e define como o aluno é avaliado. O aviso
+// "critérios" entra no system prompt do cliente e define como o aluno é avaliado. O aviso
 // no topo e o texto de cada campo existem por isso, e não são decoração.
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useRef } from 'react';
 import { api } from '../api';
 import { useSkillsContext } from '../utils/skills';
 import Typewriter from '../components/Typewriter';
@@ -56,6 +56,21 @@ export default function AdminSkills() {
     return load();
   }, [load, reloadSkillsContext]);
 
+  /**
+   * Rola o formulário para o topo da janela ao abrir.
+   *
+   * O seletor de cor é nativo: o navegador escolhe onde desenhar o painel, e nenhum CSS
+   * alcança isso. Com a lista de competências acima, o formulário caía no rodapé de uma
+   * página longa — e o painel abria para fora da tela. Trazendo o formulário para o alto,
+   * sobra espaço abaixo do campo e o painel cabe.
+   */
+  const formRef = useRef(null);
+  useEffect(() => {
+    if (creating || editingId) {
+      formRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [creating, editingId]);
+
   function openEdit(sk) {
     setEditingId(sk.id);
     setForm({ name: sk.name || '', color: sk.color || '#ff6200', criteria: sk.criteria || '' });
@@ -103,7 +118,7 @@ export default function AdminSkills() {
     const aviso = afetados > 0
       ? `Apagar "${sk.name}"?\n\n${afetados} exercício(s) ficarão SEM competência. Eles vão:\n`
         + '• sumir da Trilha (o mapa só desenha exercícios com competência);\n'
-        + '• perder os critérios desta competência no prompt do paciente;\n'
+        + '• perder os critérios desta competência no prompt do cliente;\n'
         + '• continuar existindo — você poderá reatribuí-los na lista "sem competência" abaixo.'
       : `Apagar "${sk.name}"? Nenhum exercício usa esta competência.`;
 
@@ -150,13 +165,13 @@ export default function AdminSkills() {
         <h3 className="card-title">Isto muda como o aluno é avaliado</h3>
         <p>
           Uma competência não é só um rótulo colorido no mapa. O campo <strong>critérios</strong> é
-          enviado para a IA <strong>dentro do prompt do paciente</strong>: é ele que diz o que a IA deve
+          enviado para a IA <strong>dentro do prompt do cliente</strong>: é ele que diz o que a IA deve
           observar e cobrar do aluno naquela competência.
         </p>
         <p>Ao editar os critérios, você muda:</p>
         <ul>
           <li>a <strong>avaliação</strong> de <strong>todos</strong> os exercícios daquela competência — inclusive os já criados;</li>
-          <li>o <strong>comportamento do paciente</strong> na conversa (o prompt é montado com esse texto);</li>
+          <li>o <strong>comportamento do cliente</strong> na conversa (o prompt é montado com esse texto);</li>
           <li>o que aparece no <strong>Mapa de Competências</strong> e nos <strong>logs</strong>.</li>
         </ul>
         <p className="feature-warning-note">
@@ -169,7 +184,7 @@ export default function AdminSkills() {
       {ok && <div className="alert success">{ok}</div>}
 
       {(creating || editingId) && (
-        <form className="card admin-form" onSubmit={save}>
+        <form className="card admin-form skill-form" onSubmit={save} ref={formRef}>
           <h3 className="card-title">{creating ? 'Nova competência' : 'Editar competência'}</h3>
 
           <div style={{ display: 'flex', gap: 14 }}>
@@ -185,6 +200,12 @@ export default function AdminSkills() {
             </div>
             <div>
               <label htmlFor="sk-color">Cor</label>
+              {/* O seletor de cor é NATIVO do sistema operacional — o navegador decide
+                  onde abrir o painel e nenhum CSS reposiciona isso. Ele abria para baixo,
+                  fora da tela, porque o formulário costumava ficar no rodapé de uma
+                  página longa. A saída é garantir que o formulário esteja no ALTO da
+                  janela quando abre (ver `formRef` + scrollIntoView), deixando espaço
+                  abaixo do campo para o painel caber. */}
               <input
                 id="sk-color"
                 type="color"
@@ -192,6 +213,7 @@ export default function AdminSkills() {
                 onChange={(e) => setForm((f) => ({ ...f, color: e.target.value }))}
                 style={{ width: 64, height: 42, padding: 4 }}
               />
+              <div className="skill-color-hint">Clique no quadrado para escolher</div>
             </div>
           </div>
 
@@ -206,7 +228,7 @@ export default function AdminSkills() {
               maxLength={2000}
             />
             <small className="field-hint">
-              Este texto vai <strong>direto para o prompt do paciente</strong> e orienta a avaliação da IA.
+              Este texto vai <strong>direto para o prompt do cliente</strong> e orienta a avaliação da IA.
               Não é um rótulo — mudar aqui muda a nota dos alunos nos exercícios desta competência.
             </small>
           </div>
@@ -256,7 +278,7 @@ export default function AdminSkills() {
           <h3 className="card-title">Exercícios sem competência ({orphans.length})</h3>
           <p className="settings-row-desc">
             Estes exercícios apontam para uma competência que não existe mais. Eles{' '}
-            <strong>não aparecem na Trilha</strong> e o prompt do paciente é montado sem os critérios
+            <strong>não aparecem na Trilha</strong> e o prompt do cliente é montado sem os critérios
             de competência. Edite cada um em <strong>Exercícios da Trilha</strong> e escolha uma competência.
           </p>
           <ul className="orphan-list">

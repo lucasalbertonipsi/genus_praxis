@@ -32,7 +32,7 @@ export default function AdminFreeplay() {
 
   function resetPhoto() { setPhotoData(null); setPhotoCleared(false); setCurrentPhotoUrl(null); }
   /**
-   * Liga/desliga o acesso de um papel a este paciente (demanda #7). Salva na hora — são
+   * Liga/desliga o acesso de um papel a este cliente (demanda #7). Salva na hora — são
    * dois cliques por linha, e abrir o modal só para isso seria fricção à toa.
    *
    * Atualiza o estado local de forma otimista e recarrega no fim: o `difficulty` da linha
@@ -52,7 +52,7 @@ export default function AdminFreeplay() {
     }
   }
 
-  // Sem NENHUM papel liberado: o paciente é invisível para todo mundo.
+  // Sem NENHUM papel liberado: o cliente é invisível para todo mundo.
   const bloqueados = characters.filter((c) => c.allowStudent === false && c.allowVisitor === false);
 
   function openCreate() { setForm(EMPTY_FORM); setEditingId(null); setFormError(''); resetPhoto(); setShowModal(true); }
@@ -112,18 +112,18 @@ export default function AdminFreeplay() {
         <div>
           <div className="eyebrow">Administração · Simulação</div>
           <h2><Typewriter text="Personagens da " /><span className="accent"><Typewriter text="Simulação" delayStart={620} /></span></h2>
-          <p>Cadastre os pacientes simulados que aparecerão na biblioteca de Simulação para os alunos.</p>
+          <p>Cadastre os clientes simulados que aparecerão na biblioteca de Simulação para os alunos.</p>
         </div>
         <button className="btn btn-primary" onClick={openCreate}>+ Novo Personagem</button>
       </div>
 
-      {/* Aparece só ENQUANTO houver paciente bloqueado. É o aviso do dia do deploy: a
-          migração (D7) bloqueou todos os pacientes que já existiam, e sem isto o admin
-          veria os alunos "sem nenhum paciente" sem nenhuma mensagem de erro. */}
+      {/* Aparece só ENQUANTO houver cliente bloqueado. É o aviso do dia do deploy: a
+          migração (D7) bloqueou todos os clientes que já existiam, e sem isto o admin
+          veria os alunos "sem nenhum cliente" sem nenhuma mensagem de erro. */}
       {bloqueados.length > 0 && (
         <div className="alert" style={{ marginBottom: 18 }}>
-          <strong>{bloqueados.length} paciente(s) sem ninguém liberado.</strong>{' '}
-          Um paciente só aparece para quem estiver marcado nas colunas <strong>Aluno</strong> e{' '}
+          <strong>{bloqueados.length} cliente(s) sem ninguém liberado.</strong>{' '}
+          Um cliente só aparece para quem estiver marcado nas colunas <strong>Aluno</strong> e{' '}
           <strong>Visitante</strong>. Enquanto as duas estiverem desmarcadas, ele não existe para
           ninguém — nem na biblioteca, nem no duelo, nem na progressão.
         </div>
@@ -141,8 +141,8 @@ export default function AdminFreeplay() {
             <thead>
               <tr>
                 <th>Nome</th><th>Idade</th><th>Dificuldade</th><th>Descrição</th>
-                <th className="access-col" title="Quem pode atender este paciente">Aluno</th>
-                <th className="access-col" title="Quem pode atender este paciente">Visitante</th>
+                <th className="access-col" title="Quem pode atender este cliente">Aluno</th>
+                <th className="access-col" title="Quem pode atender este cliente">Visitante</th>
                 <th>Ações</th>
               </tr>
             </thead>
@@ -158,7 +158,7 @@ export default function AdminFreeplay() {
                     <span className="clamp-2">{c.description}</span>
                   </td>
                   {/* Acesso por papel (demanda #7). Campo ausente = liberado, mas a
-                      migração D7 bloqueou todos os pacientes que já existiam. */}
+                      migração D7 bloqueou todos os clientes que já existiam. */}
                   {['allowStudent', 'allowVisitor'].map((field) => (
                     <td key={field} className="access-col">
                       <label className="access-check">
@@ -203,7 +203,7 @@ export default function AdminFreeplay() {
                 </div>
               </div>
               <div>
-                <label>Foto do paciente <em className="opt">(opcional)</em></label>
+                <label>Foto do cliente <em className="opt">(opcional)</em></label>
                 <PhotoPicker
                   currentUrl={photoCleared ? null : currentPhotoUrl}
                   onChange={(d) => { setPhotoData(d); setPhotoCleared(false); }}
@@ -224,7 +224,7 @@ export default function AdminFreeplay() {
               <div>
                 <label htmlFor="specificInstruction">Instrução específica (prompt da IA)</label>
                 <textarea id="specificInstruction" name="specificInstruction" value={form.specificInstruction} onChange={handleChange} placeholder="História, traços de personalidade, queixa, forma de se expressar… (usado quando não há Assistant ID)" style={{ minHeight: 180 }} />
-                <small className="field-hint">Descreve quem é o paciente. Não aparece para o aluno — vai apenas para a IA que encarna o personagem.</small>
+                <small className="field-hint">Descreve quem é o cliente. Não aparece para o aluno — vai apenas para a IA que encarna o personagem.</small>
               </div>
               <div>
                 <label htmlFor="evaluationCriteria">Critério de correção <em className="opt">(gabarito do avaliador — opcional)</em></label>

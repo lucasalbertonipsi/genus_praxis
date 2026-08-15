@@ -74,14 +74,14 @@ function buildLogStrings(log, names = {}) {
   const skillName = skillLabel(names, log.skillId);
   const header = [
     `Terapeuta: ${log.userName || '—'}`,
-    `Paciente: ${log.itemTitle || '—'}`,
+    `Cliente: ${log.itemTitle || '—'}`,
     skillName ? `Competência: ${skillName}` : null,
     `Sessões: ${log.sessionCount || 1}`,
     `Data: ${formatDate(log.timestamp)}`,
   ].filter(Boolean).join('\n');
   const transcript = messages.filter((m) => !m.isSystem).map((m) => {
     const isUser = m.role === 'user';
-    const author = isUser ? (log.userName || 'Terapeuta') : (log.itemTitle || 'Paciente');
+    const author = isUser ? (log.userName || 'Terapeuta') : (log.itemTitle || 'Cliente');
     const star = m.highlighted ? ' ★' : '';
     const comment = m.highlighted && m.comment ? `\n   {${m.comment}}` : '';
     return `[${author}${star}]\n${m.content}${comment}`;
@@ -128,7 +128,7 @@ function LogMessages({ log }) {
         const isUser = msg.role === 'user';
         return (
           <div key={i} className={`msg ${isUser ? 'user' : 'assistant'}`}>
-            <strong>{isUser ? (log.userName || 'Terapeuta') : (log.itemTitle || 'Paciente')}{msg.highlighted ? ' ★' : ''}</strong>
+            <strong>{isUser ? (log.userName || 'Terapeuta') : (log.itemTitle || 'Cliente')}{msg.highlighted ? ' ★' : ''}</strong>
             {msg.content}
             {msg.highlighted && msg.comment && <div className="log-comment">{`{${msg.comment}}`}</div>}
           </div>
@@ -203,7 +203,7 @@ function LogCard({ log, canDelete, onDelete }) {
 }
 
 // =====================================================================
-// VISÃO DO ALUNO — Pacientes → Datas → Detalhe
+// VISÃO DO ALUNO — Clientes → Datas → Detalhe
 // =====================================================================
 function StudentView({ logs }) {
   const { names } = useSkillsContext();
@@ -214,7 +214,7 @@ function StudentView({ logs }) {
   const patients = useMemo(() => {
     const map = new Map();
     for (const log of logs) {
-      const key = log.itemId || log.itemTitle || '__sem-paciente';
+      const key = log.itemId || log.itemTitle || '__sem-cliente';
       if (!map.has(key)) map.set(key, { key, name: log.itemTitle || 'Sem nome', type: log.type, logs: [] });
       map.get(key).logs.push(log);
     }
@@ -273,7 +273,7 @@ function StudentView({ logs }) {
   if (selectedPatient) {
     return (
       <div>
-        <BackButton onClick={() => setSelectedKey(null)}>Voltar para pacientes</BackButton>
+        <BackButton onClick={() => setSelectedKey(null)}>Voltar para clientes</BackButton>
         <div className="detail-head">
           <h3>{selectedPatient.name}</h3>
           <p className="muted">{selectedPatient.logs.length} {selectedPatient.logs.length === 1 ? 'sessão registrada' : 'sessões registradas'}. Escolha uma data.</p>
@@ -305,11 +305,11 @@ function StudentView({ logs }) {
   }
 
   if (patients.length === 0) {
-    return <div className="card empty-state">Você ainda não atendeu nenhum paciente.</div>;
+    return <div className="card empty-state">Você ainda não atendeu nenhum cliente.</div>;
   }
   return (
     <div>
-      <p className="muted list-count">{patients.length} {patients.length === 1 ? 'paciente atendido' : 'pacientes atendidos'}</p>
+      <p className="muted list-count">{patients.length} {patients.length === 1 ? 'cliente atendido' : 'clientes atendidos'}</p>
       <div className="card-grid">
         {patients.map((p) => (
           <div key={p.key} className="character-card" onClick={() => setSelectedKey(p.key)} role="button" tabIndex={0}
@@ -414,7 +414,7 @@ function AllLogsView({ logs, canDelete, onDelete }) {
         </div>
         <div className="logs-filter">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
-          <input type="text" value={patientQuery} onChange={(e) => setPatientQuery(e.target.value)} placeholder="Filtrar por paciente…" />
+          <input type="text" value={patientQuery} onChange={(e) => setPatientQuery(e.target.value)} placeholder="Filtrar por cliente…" />
         </div>
         <select className="logs-sort" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)} title="Filtrar por tipo">
           <option value="all">Todos os tipos</option>
@@ -430,7 +430,7 @@ function AllLogsView({ logs, canDelete, onDelete }) {
           <option value="recent">Mais recentes</option>
           <option value="old">Mais antigos</option>
           <option value="therapist">Terapeuta (A–Z)</option>
-          <option value="patient">Paciente (A–Z)</option>
+          <option value="patient">Cliente (A–Z)</option>
         </select>
         <label className="logs-group-toggle">
           <input type="checkbox" checked={grouped} onChange={(e) => setGrouped(e.target.checked)} />
@@ -486,7 +486,7 @@ export default function Logs({ user, userId }) {
 
   const title = isStudent ? 'Meus logs' : 'Todos os logs';
   const subtitle = isStudent
-    ? 'Pacientes que você atendeu. Clique em um para ver as datas e abrir o log de cada sessão.'
+    ? 'Clientes que você atendeu. Clique em um para ver as datas e abrir o log de cada sessão.'
     : 'Histórico de todas as sessões da plataforma. Filtre, ordene, agrupe por pessoa, visualize e baixe.';
 
   return (

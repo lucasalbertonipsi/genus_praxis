@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-// Avatar do paciente. Usa a foto enviada pelo admin (iconUrl / fullUrl); sem
+// Avatar do cliente. Usa a foto enviada pelo admin (iconUrl / fullUrl); sem
 // foto, cai nas iniciais do nome.
 function initials(name) {
   if (!name) return '?';
@@ -29,7 +29,7 @@ export function PatientAvatar({ name, iconUrl, size = 46, className = '' }) {
       className={`patient-avatar ${className}`}
       style={style}
       src={iconUrl}
-      alt={name || 'paciente'}
+      alt={name || 'cliente'}
       loading="lazy"
       onError={() => setFailed(true)}
     />

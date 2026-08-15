@@ -4,18 +4,18 @@ import Typewriter from '../components/Typewriter';
 const STEPS = [
   {
     n: '01',
-    title: 'Escolha um paciente',
-    text: 'Na aba Simulação você encontra a biblioteca de pacientes simulados. Cada card traz nome, idade e uma breve apresentação do caso.',
+    title: 'Escolha um cliente',
+    text: 'Na aba Simulação você encontra a biblioteca de clientes simulados. Cada card traz nome, idade e uma breve apresentação do caso.',
   },
   {
     n: '02',
     title: 'Conduza o atendimento',
-    text: 'O paciente abre a conversa. Responda por mensagens, como numa sessão real — praticando escuta, manejo do vínculo e ritmo. Você pode enviar por texto ou gravar áudio (transcrição automática).',
+    text: 'O cliente abre a conversa. Responda por mensagens, como numa sessão real — praticando escuta, manejo do vínculo e ritmo. Você pode enviar por texto ou gravar áudio (transcrição automática).',
   },
   {
     n: '03',
     title: 'Avance as sessões',
-    text: 'Use "Próxima sessão" para pular o tempo até o próximo encontro — o paciente retorna na semana seguinte. Um cronômetro acompanha o tempo de cada atendimento.',
+    text: 'Use "Próxima sessão" para pular o tempo até o próximo encontro — o cliente retorna na semana seguinte. Um cronômetro acompanha o tempo de cada atendimento.',
   },
   {
     n: '04',
@@ -48,7 +48,7 @@ export default function Home({ user }) {
           <span className="accent"><Typewriter text="Clínica" delayStart={420} /></span>
         </h2>
         <p className="home-hero-lead">
-          Aqui você pratica atendimento com pacientes simulados por IA. Um espaço seguro para
+          Aqui você pratica atendimento com clientes simulados por IA. Um espaço seguro para
           treinar escuta, presença e condução — no seu ritmo, quantas sessões precisar.
         </p>
         <div className="ornament" />
@@ -76,7 +76,7 @@ export default function Home({ user }) {
       <div className="home-footer-cta">
         <div>
           <div className="home-footer-cta-title">Pronto para começar?</div>
-          <div className="home-footer-cta-sub">Escolha um paciente e inicie o seu primeiro atendimento.</div>
+          <div className="home-footer-cta-sub">Escolha um cliente e inicie o seu primeiro atendimento.</div>
         </div>
         <button className="btn btn-primary" onClick={() => navigate('/freeplay')}>Ir para a Simulação</button>
       </div>

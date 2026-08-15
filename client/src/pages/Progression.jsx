@@ -21,7 +21,7 @@ export default function Progression({ user }) {
         const data = await api.getProgressionPatients();
         if (alive) setPatients(data || []);
       } catch (err) {
-        if (alive) setError(err.message || 'Erro ao carregar pacientes.');
+        if (alive) setError(err.message || 'Erro ao carregar clientes.');
       } finally {
         if (alive) setLoading(false);
       }
@@ -80,7 +80,7 @@ export default function Progression({ user }) {
 
           <div className="progression-actions">
             <button className="btn btn-primary" onClick={startNewSession}>
-              Avaliar outro paciente
+              Avaliar outro cliente
             </button>
             <button className="btn btn-outline" onClick={() => navigate('/inicio')}>
               Voltar ao início
@@ -106,14 +106,14 @@ export default function Progression({ user }) {
     );
   }
 
-  // ---- Tela de seleção de paciente ----
+  // ---- Tela de seleção de cliente ----
   return (
     <div className="progression-page">
       <div className="page-header">
         <div className="eyebrow">Progressão</div>
         <h2><Typewriter text="Pro" /><span className="accent"><Typewriter text="gressão" delayStart={140} /></span></h2>
         <p>
-          Escolha um paciente que você já atendeu, converse com ele novamente e nós
+          Escolha um cliente que você já atendeu, converse com ele novamente e nós
           comparamos como você evoluiu do primeiro atendimento para o segundo.
         </p>
         <div className="ornament" />
@@ -127,11 +127,11 @@ export default function Progression({ user }) {
         </div>
       ) : patients.length === 0 ? (
         <div className="card" style={{ textAlign: 'center', padding: '40px 24px', color: 'var(--text-soft)' }}>
-          <p>Você ainda não atendeu nenhum paciente. Comece uma Simulação Livre para criar histórico.</p>
+          <p>Você ainda não atendeu nenhum cliente. Comece uma Simulação Livre para criar histórico.</p>
         </div>
       ) : (
         <>
-          <h3 style={{ marginBottom: 16 }}>Escolha um paciente para avaliar progresso</h3>
+          <h3 style={{ marginBottom: 16 }}>Escolha um cliente para avaliar progresso</h3>
           <div className="card-grid">
             {patients.map((patient) => (
               <div

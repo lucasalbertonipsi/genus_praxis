@@ -4,7 +4,7 @@ import Typewriter from '../components/Typewriter';
 import '../styles/Admin.css';
 
 // Chat com o agente entrevistador (admin-only). Ele conduz a co-construção de um
-// personagem-paciente e, ao final, devolve o prompt do paciente estruturado em
+// personagem-cliente e, ao final, devolve o prompt do cliente estruturado em
 // seções "## [I. CONTENÇÃO]" … "## [V. ABERTURA E CONTINUIDADE]".
 //
 // A extração dos blocos roda NO SERVIDOR (POST /api/entrevistador/extract):
@@ -101,7 +101,7 @@ export default function AdminEntrevistador({ user }) {
     try {
       const r = await api.extractBlocos(messages.map((m) => ({ role: m.role, content: m.content })));
       if (!r.ready) {
-        setError('O entrevistador ainda não gerou o prompt do paciente. Conclua a entrevista até ele devolver o prompt formatado (começando em "## [I. CONTENÇÃO]").');
+        setError('O entrevistador ainda não gerou o prompt do cliente. Conclua a entrevista até ele devolver o prompt formatado (começando em "## [I. CONTENÇÃO]").');
         return;
       }
       setCharForm({
@@ -159,7 +159,7 @@ export default function AdminEntrevistador({ user }) {
   async function downloadBloco2() {
     try {
       const r = await api.extractBlocos(messages.map((m) => ({ role: m.role, content: m.content })));
-      if (!r.ready) { setError('O prompt final do paciente ainda não foi gerado pelo entrevistador.'); return; }
+      if (!r.ready) { setError('O prompt final do cliente ainda não foi gerado pelo entrevistador.'); return; }
       download(r.bloco2, `prompt-personagem-${new Date().toISOString().slice(0, 10)}.md`);
     } catch (err) {
       setError(err.message || 'Erro ao extrair o prompt');
@@ -195,7 +195,7 @@ export default function AdminEntrevistador({ user }) {
           <h2><Typewriter text="Entre" /><span className="accent"><Typewriter text="vistador" delayStart={180} /></span></h2>
           <p>
             Conduza uma entrevista com o agente entrevistador para co-construir um novo
-            personagem-paciente. Ao final ele devolve o prompt pronto: a persona vai para a
+            personagem-cliente. Ao final ele devolve o prompt pronto: a persona vai para a
             biblioteca de Simulação e o gabarito, para o avaliador.
           </p>
         </div>

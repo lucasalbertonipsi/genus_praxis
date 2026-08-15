@@ -293,3 +293,11 @@
   accent-color: var(--accent);
   cursor: pointer;
 }
+
+/* Dica sob o seletor de cor das competências. O painel de cor é nativo do sistema
+   operacional: ele abre onde o navegador decidir, e nenhum CSS o reposiciona. O que dá
+   para fazer é (a) trazer o formulário para o topo da janela ao abrir — ver o
+   `scrollIntoView` em AdminSkills.jsx — e (b) deixar claro onde clicar. */
+.admin-page .skill-color-hint { font-size: 11px; color: var(--text-muted); margin-top: 4px; max-width: 90px; line-height: 1.3; }
+/* Espaço abaixo do formulário para o painel nativo ter onde abrir sem sair da tela. */
+.admin-page .skill-form { scroll-margin-top: 16px; margin-bottom: 320px; }
