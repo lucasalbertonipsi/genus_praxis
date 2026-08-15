@@ -449,6 +449,15 @@ describe('a feature `avaliacao` contém o custo de IA em TODAS as portas', () =>
   // paga" e um lead pode entrar aos montes. Mas a PROGRESSÃO gastava IA sem consultá-la:
   // bastava ligar `progressao` e o gate de custo virava letra morta.
   it('progressão do visitante não gasta IA com `avaliacao` desligada', async () => {
+    // `progressao` liberada de propósito: o que este teste protege é o gate de CUSTO
+    // (`avaliacao`), e um 403 de cadeado passaria por "não gastou IA" pelo motivo errado.
+    writeData('settings.json', {
+      evaluatorEnabled: true,
+      featureAccess: {
+        progressao: { aluno: true, visitante: true },
+        avaliacao: { aluno: true, visitante: false },
+      },
+    });
     const v = await loginVisitorFull();
     const res = await request(app).post('/api/progression/evaluate').set(authHeader(v.token))
       .send({ characterId: CHAR, messages: [{ role: 'user', content: 'oi' }] });

@@ -172,6 +172,15 @@ describe('progressão', () => {
     // (O nome antigo deste teste falava em "id efêmero": o visitante deixou de ser efêmero
     // na demanda #1, e o teste passou a testar outra coisa sem ninguém notar.)
     it('evaluate: visitante NÃO gasta IA quando `avaliacao` está desligada para ele', async () => {
+      // Explícito: `progressao` liberada (senão o 403 do cadeado mascararia o resultado)
+      // e `avaliacao` desligada — que é o gate de CUSTO sob teste aqui.
+      writeData('settings.json', {
+        evaluatorEnabled: true,
+        featureAccess: {
+          progressao: { aluno: true, visitante: true },
+          avaliacao: { aluno: true, visitante: false },
+        },
+      });
       const visitor = await loginVisitor();
       const res = await request(app).post('/api/progression/evaluate').set(authHeader(visitor))
         .send({ characterId: 'fp-test-1', messages: msgs });
@@ -183,7 +192,13 @@ describe('progressão', () => {
     it('evaluate: com `avaliacao` LIGADA para o visitante, o fluxo normal volta', async () => {
       writeData('settings.json', {
         evaluatorEnabled: true,
-        featureAccess: { avaliacao: { aluno: true, visitante: true } },
+        featureAccess: {
+          // `progressao` precisa vir junto: este writeData substitui o settings INTEIRO, e
+          // o default dela para visitante agora é bloqueado — sem isto o teste bateria no
+          // cadeado (403) antes de chegar ao fluxo que ele quer exercitar.
+          progressao: { aluno: true, visitante: true },
+          avaliacao: { aluno: true, visitante: true },
+        },
       });
       const visitor = await loginVisitor();
       const res = await request(app).post('/api/progression/evaluate').set(authHeader(visitor))

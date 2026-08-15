@@ -82,12 +82,12 @@ describe('normalizeFeatureAccess', () => {
   it('feature ausente no disco ganha o default', () => {
     const out = normalizeFeatureAccess({ duelo: { aluno: false, visitante: false } });
     expect(out.duelo).toEqual({ aluno: false, visitante: false });
-    expect(out.ranking).toEqual({ aluno: true, visitante: true });
+    expect(out.ranking).toEqual({ aluno: true, visitante: false });
   });
 
   it('papel ausente na linha ganha o default (não vira undefined)', () => {
     const out = normalizeFeatureAccess({ duelo: { aluno: false } });
-    expect(out.duelo).toEqual({ aluno: false, visitante: true });
+    expect(out.duelo).toEqual({ aluno: false, visitante: false });
   });
 
   it('coage para booleano', () => {
@@ -165,6 +165,8 @@ describe('migração do settings.json (boot)', () => {
   // escolha dele seria descartada em silêncio.
   it('preserva o visitorEvaluationEnabled=true → avaliacao.visitante=true', () => {
     const s = bootWith({ evaluatorEnabled: true, visitorEvaluationEnabled: true });
+    // `visitante: true` aqui NÃO é o default (que agora é false) — é a escolha explícita
+    // do admin, preservada pela migração. É exatamente isso que este teste protege.
     expect(s.featureAccess.avaliacao).toEqual({ aluno: true, visitante: true });
     expect(s.visitorEvaluationEnabled).toBeUndefined(); // absorvido pela matriz
     expect(s.evaluatorEnabled).toBe(true);              // e o resto sobrevive
