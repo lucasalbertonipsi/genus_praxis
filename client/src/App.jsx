@@ -423,7 +423,7 @@ export default function App() {
   const [userId, setUserId] = useState(null);
   return (
     <FeaturesProvider userId={userId}>
-      <SkillsProvider>
+      <SkillsProvider userId={userId}>
         <AppShell onUserChange={setUserId} />
       </SkillsProvider>
     </FeaturesProvider>

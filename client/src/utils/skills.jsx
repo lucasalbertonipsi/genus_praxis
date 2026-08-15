@@ -58,7 +58,7 @@ export function skillLabel(names, skillId) {
  * nem um rótulo em branco. O admin recebe também `criteria` e `exerciseCount`; o aluno,
  * só id/nome/cor (os critérios são material de avaliação e não vazam para ele).
  */
-export function useSkills() {
+export function useSkills(userId) {
   const [skills, setSkills] = useState(FALLBACK_SKILLS);
   const [loading, setLoading] = useState(true);
   // `stale` = estamos mostrando o FALLBACK porque a carga falhou, não porque estas são as
@@ -93,10 +93,10 @@ export function useSkills() {
       .finally(() => { if (alive.current) setLoading(false); });
   }, []);
 
-  // `load` tem deps `[]` — é uma referência ESTÁVEL, então este efeito roda uma vez só.
-  // Isso é o que impede o laço: quem chama `reload()` (o AdminSkills) não pode acabar
-  // recriando o próprio efeito que dispara `reload()` de novo.
-  useEffect(() => { load(); }, [load]);
+  // `load` tem deps `[]` — é uma referência ESTÁVEL, então só o `userId` dispara este
+  // efeito de novo. Isso é o que impede o laço: quem chama `reload()` (o AdminSkills) não
+  // pode acabar recriando o próprio efeito que dispara `reload()` de novo.
+  useEffect(() => { load(); }, [load, userId]);
 
   return {
     skills,
@@ -121,8 +121,20 @@ export function useSkills() {
 // ---------------------------------------------------------------------
 const SkillsContext = createContext(null);
 
-export function SkillsProvider({ children }) {
-  const value = useSkills();
+/**
+ * `userId` é a chave de recarga — mesmo padrão do `<FeaturesProvider>`.
+ *
+ * ⚠ SEM ISTO havia um bug visível a todo primeiro acesso (mais óbvio no visitante, que
+ * sempre entra do zero): este provider monta FORA do AppShell, ou seja ANTES de existir
+ * login. A primeira busca de `/api/skills` saía sem token, levava 401, caía no
+ * FALLBACK_SKILLS — e, com deps `[]`, nunca mais tentava. A trilha ficava mostrando as
+ * competências antigas até o usuário recarregar a página na mão.
+ *
+ * Ao entrar, sair ou trocar de conta, o `userId` muda e as competências são buscadas de
+ * novo — agora com token.
+ */
+export function SkillsProvider({ userId, children }) {
+  const value = useSkills(userId);
   return <SkillsContext.Provider value={value}>{children}</SkillsContext.Provider>;
 }
 
